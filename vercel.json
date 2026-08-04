@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    { "source": "/", "destination": "/bootcamp-platform.html" }
+  ],
+  "functions": {
+    "api/upload.js": { "maxDuration": 30 }
+  }
+}

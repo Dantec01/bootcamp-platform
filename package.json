@@ -1,0 +1,16 @@
+{
+  "name": "bootcamp-platform",
+  "private": true,
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node local-server.js",
+    "dev": "node local-server.js"
+  },
+  "dependencies": {
+    "formidable": "^3.5.2",
+    "googleapis": "^144.0.0"
+  },
+  "devDependencies": {
+    "vercel": "^39.1.1"
+  }
+}

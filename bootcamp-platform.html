@@ -1,0 +1,2315 @@
+<style>
+  :root {
+    --paper: #F6F4EE;
+    --paper-raised: #FFFFFF;
+    --ink: #1C2541;
+    --ink-soft: #4A5170;
+    --line: #DCD6C4;
+    --accent: #2E7D6B;
+    --accent-soft: #DCEAE6;
+    --amber: #C98A2B;
+    --amber-soft: #F4E6C9;
+    --danger: #B5482E;
+    --danger-soft: #F6E4DE;
+    --radius: 10px;
+    --mono: 'IBM Plex Mono', ui-monospace, monospace;
+    --sans: 'IBM Plex Sans', -apple-system, sans-serif;
+    --serif: 'Fraunces', Georgia, serif;
+  }
+
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+  }
+
+  #app {
+    max-width: 1180px;
+    margin: 0 auto;
+    background: var(--paper);
+    position: relative;
+  }
+
+  /* ===== TOPBAR ===== */
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 14px 20px;
+    background: var(--paper);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .brand {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    min-width: 0;
+  }
+
+  .hamburger {
+    display: none;
+    flex-shrink: 0;
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: var(--paper-raised);
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .hamburger span,
+  .hamburger span::before,
+  .hamburger span::after {
+    content: '';
+    display: block;
+    width: 16px;
+    height: 2px;
+    background: var(--ink);
+    position: relative;
+  }
+
+  .hamburger span::before {
+    position: absolute;
+    top: -5px;
+  }
+
+  .hamburger span::after {
+    position: absolute;
+    top: 5px;
+  }
+
+  .logo-slot {
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    border-radius: 9px;
+    border: 1.5px dashed var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--paper-raised);
+    overflow: hidden;
+  }
+
+  .logo-slot-icon {
+    font-size: 20px;
+    opacity: .45;
+  }
+
+  .logo-slot img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  .brand-title {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: 20px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .brand-title[contenteditable="true"] {
+    outline: 1px dashed var(--amber);
+    border-radius: 4px;
+    padding: 0 4px;
+  }
+
+  .admin-avatar-btn {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: .15s;
+    box-shadow: 0 0 0 2px transparent;
+  }
+
+  .admin-avatar-btn:hover {
+    filter: brightness(1.08);
+  }
+
+  .admin-avatar-btn.on {
+    background: var(--ink);
+    box-shadow: 0 0 0 3px var(--amber-soft);
+  }
+
+  .admin-avatar-icon {
+    width: 22px;
+    height: 22px;
+    color: #fff;
+  }
+
+  .admin-menu-popover {
+    position: fixed;
+    z-index: 110;
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: 0 14px 34px rgba(0, 0, 0, .2);
+    padding: 12px;
+    min-width: 210px;
+  }
+
+  .admin-menu-label {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .admin-menu-label .status-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--amber);
+    flex-shrink: 0;
+  }
+
+  .admin-menu-logout {
+    width: 100%;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    padding: 10px 12px;
+    border-radius: 7px;
+    border: 1px solid var(--danger);
+    color: var(--danger);
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .admin-menu-logout:hover {
+    background: var(--danger-soft);
+  }
+
+  .modal-error {
+    color: var(--danger);
+    font-size: 12.5px;
+    margin: -10px 0 14px;
+  }
+
+  /* ===== LAYOUT ===== */
+  .body-wrap {
+    display: flex;
+    width: 100%;
+    position: relative;
+  }
+
+  .sidebar-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(28, 37, 65, .35);
+    z-index: 24;
+  }
+
+  .sidebar {
+    width: 308px;
+    flex-shrink: 0;
+    border-right: 1px solid var(--line);
+    padding: 20px 16px 60px;
+    max-height: calc(100vh - 20px);
+    overflow-y: auto;
+  }
+
+  .sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    margin: 4px 4px 12px;
+  }
+
+  .sidebar-label {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+  }
+
+  .collapse-btn {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    background: var(--paper-raised);
+    color: var(--ink-soft);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+  }
+
+  .collapse-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .sidebar.collapsed {
+    width: 64px;
+    padding-left: 8px;
+    padding-right: 8px;
+    transition: width .18s ease;
+  }
+
+  .sidebar {
+    transition: width .18s ease;
+  }
+
+  .sidebar.collapsed .sidebar-label,
+  .sidebar.collapsed .module-title-text,
+  .sidebar.collapsed .lesson-title-text,
+  .sidebar.collapsed .module-caret,
+  .sidebar.collapsed #addModuleRow {
+    display: none;
+  }
+
+  .sidebar.collapsed .sidebar-header {
+    justify-content: center;
+  }
+
+  .sidebar.collapsed .module-head {
+    justify-content: center;
+    padding: 10px 2px;
+  }
+
+  .sidebar.collapsed .lesson-list {
+    padding-left: 0;
+    border-left: none;
+  }
+
+  .sidebar.collapsed .lesson-item {
+    justify-content: center;
+    padding: 8px 2px;
+  }
+
+  .sidebar.collapsed .admin-add-row {
+    display: none;
+  }
+
+  .main {
+    flex: 1;
+    padding: 26px 32px 100px;
+    min-width: 0;
+  }
+
+  /* ===== MODULE / LESSON TREE ===== */
+  .module {
+    margin-bottom: 6px;
+  }
+
+  .module-head {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 10px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-weight: 600;
+    font-size: 13.5px;
+    color: var(--ink);
+    min-height: 40px;
+  }
+
+  .module-head:hover {
+    background: var(--accent-soft);
+  }
+
+  .module-num {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border-radius: 5px;
+    padding: 2px 6px;
+    flex-shrink: 0;
+  }
+
+  .module-caret {
+    margin-left: auto;
+    font-size: 10px;
+    color: var(--ink-soft);
+    transition: transform .15s;
+  }
+
+  .module.open .module-caret {
+    transform: rotate(90deg);
+  }
+
+  .lesson-list {
+    list-style: none;
+    margin: 2px 0 8px;
+    padding: 0 0 0 14px;
+    border-left: 1px solid var(--line);
+    display: none;
+  }
+
+  .module.open .lesson-list {
+    display: block;
+  }
+
+  .lesson-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 10px;
+    border-radius: 7px;
+    cursor: pointer;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin: 1px 0;
+    min-height: 38px;
+  }
+
+  .lesson-item:hover {
+    background: var(--paper-raised);
+    color: var(--ink);
+  }
+
+  .lesson-item.active {
+    background: var(--ink);
+    color: var(--paper);
+    font-weight: 500;
+  }
+
+  .lesson-title-text {
+    flex: 1;
+  }
+
+  .lesson-num {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    opacity: .7;
+    flex-shrink: 0;
+  }
+
+  .lesson-item.active .lesson-num {
+    opacity: .9;
+  }
+
+  .admin-add-row {
+    display: flex;
+    gap: 6px;
+    margin: 10px 4px 18px;
+    flex-wrap: wrap;
+  }
+
+  .btn-ghost {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .03em;
+    color: var(--accent);
+    background: transparent;
+    border: 1px dashed var(--accent);
+    border-radius: 6px;
+    padding: 8px 12px;
+    cursor: pointer;
+    min-height: 36px;
+  }
+
+  .btn-ghost:hover {
+    background: var(--accent-soft);
+  }
+
+  .btn-ghost.small {
+    padding: 6px 10px;
+    font-size: 10.5px;
+    min-height: 32px;
+  }
+
+  .btn-ghost.danger {
+    color: var(--danger);
+    border-color: var(--danger);
+  }
+
+  .btn-ghost.danger:hover {
+    background: var(--danger-soft);
+  }
+
+  .toggle-add {
+    margin-top: 6px;
+  }
+
+  /* ===== MAIN LESSON VIEW ===== */
+  .lesson-header {
+    border-bottom: 1px solid var(--line);
+    padding-bottom: 18px;
+    margin-bottom: 24px;
+  }
+
+  .lesson-eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .12em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .lesson-title {
+    font-family: var(--serif);
+    font-size: 30px;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.18;
+  }
+
+  .lesson-title[contenteditable="true"] {
+    outline: 1px dashed var(--amber);
+    border-radius: 4px;
+  }
+
+  .lesson-actions {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+  }
+
+  .empty-state {
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--ink-soft);
+  }
+
+  .empty-state h3 {
+    font-family: var(--serif);
+    font-size: 22px;
+    color: var(--ink);
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  /* ===== MATERIAL CARDS ===== */
+  .material {
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    margin-bottom: 18px;
+    overflow: hidden;
+  }
+
+  .material-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--line);
+    flex-wrap: wrap;
+  }
+
+  .type-chip {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 5px;
+    flex-shrink: 0;
+  }
+
+  .type-video {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .type-text {
+    background: var(--amber-soft);
+    color: var(--amber);
+  }
+
+  .type-pdf {
+    background: #E8E3F5;
+    color: #5B4B9A;
+  }
+
+  .type-audio {
+    background: #FCE3EA;
+    color: #B23E63;
+  }
+
+  .type-image {
+    background: #DDEEF7;
+    color: #2A6E90;
+  }
+
+  .material-title {
+    font-weight: 600;
+    font-size: 14.5px;
+    flex: 1;
+    min-width: 120px;
+  }
+
+  .source-badge {
+    font-family: var(--mono);
+    font-size: 9.5px;
+    color: var(--ink-soft);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 2px 6px;
+  }
+
+  .material-actions {
+    display: flex;
+    gap: 6px;
+  }
+
+  .material-body {
+    padding: 0;
+  }
+
+  .material-body iframe,
+  .material-body img {
+    display: block;
+    width: 100%;
+    border: 0;
+  }
+
+  .material-body audio {
+    width: 100%;
+    display: block;
+    margin: 16px;
+    max-width: calc(100% - 32px);
+  }
+
+  .material-text {
+    line-height: 1.65;
+    font-size: 14.5px;
+    color: var(--ink);
+    padding: 16px 18px;
+  }
+
+  .material-text div,
+  .material-text p {
+    margin: 0 0 10px;
+  }
+
+  .material-text div:last-child,
+  .material-text p:last-child {
+    margin-bottom: 0;
+  }
+
+  .material-text b,
+  .material-text strong {
+    font-weight: 600;
+  }
+
+  .material-link {
+    padding: 16px;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  .material-link a {
+    color: var(--accent);
+  }
+
+  /* ===== ADMIN PANEL (add material) ===== */
+  .admin-panel {
+    border: 1px solid var(--amber);
+    background: var(--amber-soft);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 20px;
+  }
+
+  .admin-panel-title {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: #8A5E1E;
+    margin-bottom: 12px;
+  }
+
+  .field-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+
+  .field {
+    flex: 1;
+    min-width: 160px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .field label {
+    font-family: var(--mono);
+    font-size: 10px;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+
+  .field input,
+  .field select,
+  .field textarea {
+    font-family: var(--sans);
+    font-size: 15px;
+    padding: 9px 10px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--paper-raised);
+    color: var(--ink);
+    min-height: 42px;
+  }
+
+  .field textarea {
+    resize: vertical;
+    min-height: 70px;
+    font-family: var(--sans);
+  }
+
+  .panel-btns {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+
+  .btn-solid {
+    font-family: var(--mono);
+    font-size: 12px;
+    background: var(--ink);
+    color: var(--paper);
+    border: none;
+    border-radius: 6px;
+    padding: 10px 18px;
+    cursor: pointer;
+    min-height: 40px;
+  }
+
+  .btn-solid:hover {
+    background: var(--accent);
+  }
+
+  .btn-solid:disabled {
+    opacity: .5;
+    cursor: not-allowed;
+  }
+
+  .seg-control {
+    display: flex;
+    gap: 4px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 3px;
+    margin-bottom: 12px;
+    width: max-content;
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .seg-btn {
+    font-family: var(--mono);
+    font-size: 11px;
+    padding: 7px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: var(--ink-soft);
+    border: none;
+    background: transparent;
+    min-height: 34px;
+  }
+
+  .seg-btn.active {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  .dropzone {
+    border: 2px dashed var(--line);
+    border-radius: 10px;
+    padding: 26px 16px;
+    text-align: center;
+    background: var(--paper-raised);
+    cursor: pointer;
+    transition: .15s;
+    margin-bottom: 10px;
+  }
+
+  .dropzone:hover,
+  .dropzone.dragover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .dropzone-icon {
+    font-size: 26px;
+    margin-bottom: 6px;
+  }
+
+  .dropzone-text {
+    font-size: 13.5px;
+    color: var(--ink-soft);
+  }
+
+  .dropzone-text b {
+    color: var(--accent);
+  }
+
+  .dropzone-hint {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+  }
+
+  .file-preview {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    font-size: 13px;
+  }
+
+  .file-preview .fname {
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .file-preview button {
+    background: none;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+
+  .recorder-box {
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 18px;
+    text-align: center;
+    margin-bottom: 10px;
+  }
+
+  .rec-btn {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: none;
+    background: var(--danger);
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 6px var(--danger-soft);
+  }
+
+  .rec-btn.recording {
+    animation: pulse 1.4s infinite;
+  }
+
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 6px var(--danger-soft);
+    }
+
+    50% {
+      box-shadow: 0 0 0 12px var(--danger-soft);
+    }
+
+    100% {
+      box-shadow: 0 0 0 6px var(--danger-soft);
+    }
+  }
+
+  .rec-timer {
+    font-family: var(--mono);
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 10px;
+  }
+
+  .rec-status {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-soft);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+  }
+
+  .rec-error {
+    font-size: 12.5px;
+    color: var(--danger);
+    margin-top: 8px;
+  }
+
+  .lesson-actions-row {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin: 24px 0 20px;
+  }
+
+  .rte-toolbar {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .rte-btn {
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--line);
+    background: var(--paper-raised);
+    border-radius: 6px;
+    cursor: pointer;
+    font-family: var(--sans);
+    font-size: 13.5px;
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .rte-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .rte-btn.italic {
+    font-style: italic;
+  }
+
+  .rte-btn.underline {
+    text-decoration: underline;
+  }
+
+  .rte-select {
+    font-family: var(--sans);
+    font-size: 12.5px;
+    padding: 0 8px;
+    height: 34px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: var(--paper-raised);
+    color: var(--ink);
+  }
+
+  .rte-editable {
+    min-height: 130px;
+    max-height: 340px;
+    overflow-y: auto;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    padding: 10px 12px;
+    background: var(--paper-raised);
+    font-size: 14.5px;
+    line-height: 1.6;
+  }
+
+  .rte-editable:focus {
+    outline: 2px solid var(--accent-soft);
+    border-color: var(--accent);
+  }
+
+  .rte-editable div,
+  .rte-editable p {
+    margin: 0 0 6px;
+  }
+
+  .current-file-note {
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 8px 12px;
+  }
+
+  .drive-note {
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    margin: 2px 2px 10px;
+    line-height: 1.5;
+  }
+
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(28, 37, 65, .45);
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .modal-box {
+    background: var(--paper-raised);
+    border-radius: 12px;
+    max-width: 420px;
+    width: 100%;
+    padding: 22px;
+    box-shadow: 0 16px 44px rgba(0, 0, 0, .28);
+  }
+
+  .modal-title {
+    font-family: var(--serif);
+    font-size: 19px;
+    font-weight: 600;
+    margin: 0 0 10px;
+    color: var(--ink);
+  }
+
+  .modal-message {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+    margin-bottom: 18px;
+  }
+
+  .modal-input {
+    width: 100%;
+    font-family: var(--sans);
+    font-size: 15px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    margin-bottom: 18px;
+    background: var(--paper);
+    color: var(--ink);
+  }
+
+  .modal-btns {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .modal-btn {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    padding: 10px 18px;
+    border-radius: 7px;
+    cursor: pointer;
+    border: 1px solid var(--line);
+    background: var(--paper-raised);
+    color: var(--ink);
+    min-height: 40px;
+  }
+
+  .modal-btn.primary {
+    background: var(--ink);
+    color: var(--paper);
+    border-color: var(--ink);
+  }
+
+  .modal-btn.danger {
+    background: var(--danger);
+    color: #fff;
+    border-color: var(--danger);
+  }
+
+  .modal-btn:hover {
+    opacity: .88;
+  }
+
+  .tree-edit-btn {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border: none;
+    background: transparent;
+    color: var(--ink-soft);
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .tree-edit-btn:hover {
+    background: var(--paper-raised);
+    color: var(--accent);
+  }
+
+  .sidebar.collapsed .tree-edit-btn {
+    display: none;
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--line);
+    border-radius: 4px;
+  }
+
+  @media (max-width: 780px) {
+    .collapse-btn {
+      display: none;
+    }
+
+    .sidebar.collapsed {
+      width: 82vw;
+      max-width: 320px;
+      padding-left: 16px;
+      padding-right: 16px;
+    }
+
+    .sidebar.collapsed .sidebar-label,
+    .sidebar.collapsed .module-title-text,
+    .sidebar.collapsed .lesson-title-text,
+    .sidebar.collapsed .module-caret,
+    .sidebar.collapsed #addModuleRow,
+    .sidebar.collapsed .admin-add-row {
+      display: revert;
+    }
+
+    .sidebar.collapsed .module-head,
+    .sidebar.collapsed .lesson-item {
+      justify-content: flex-start;
+    }
+
+    .hamburger {
+      display: flex;
+    }
+
+    .brand-title {
+      font-size: 17px;
+    }
+
+    .admin-avatar-btn {
+      width: 36px;
+      height: 36px;
+    }
+
+    .admin-avatar-icon {
+      width: 20px;
+      height: 20px;
+    }
+
+    .main {
+      padding: 20px 16px 100px;
+    }
+
+    .lesson-title {
+      font-size: 24px;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      z-index: 25;
+      background: var(--paper);
+      width: 82vw;
+      max-width: 320px;
+      transform: translateX(-105%);
+      transition: transform .22s ease;
+      box-shadow: 2px 0 18px rgba(0, 0, 0, .12);
+      padding-top: 70px;
+    }
+
+    .sidebar.open {
+      transform: translateX(0);
+    }
+
+    .sidebar-backdrop.open {
+      display: block;
+    }
+
+    .field-row {
+      flex-direction: column;
+    }
+
+    .field {
+      min-width: 0;
+    }
+
+    .seg-control {
+      width: 100%;
+    }
+
+    .seg-btn {
+      flex: 1;
+      text-align: center;
+    }
+
+    .panel-btns {
+      flex-direction: column;
+    }
+
+    .panel-btns button {
+      width: 100%;
+    }
+
+    .material-title {
+      font-size: 14px;
+    }
+  }
+
+  .save-status-toast {
+    position: fixed;
+    right: 16px;
+    bottom: 16px;
+    z-index: 3000;
+    background: rgba(17, 24, 39, 0.95);
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    opacity: 0;
+    transform: translateY(8px);
+    pointer-events: none;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+
+  .save-status-toast.show {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .save-status-toast.error {
+    background: rgba(185, 28, 28, 0.95);
+  }
+</style>
+
+<div id="app">
+  <div class="topbar">
+    <div class="brand">
+      <button class="hamburger" id="hamburgerBtn" aria-label="Abrir menú"><span></span></button>
+      <div class="logo-slot" id="logoSlot" title="Espacio para tu logo">
+        <span class="logo-slot-icon">🖼</span>
+      </div>
+      <div class="logo-slot" id="logoSlot" title="Espacio para tu logo">
+        <span class="logo-slot-icon">🖼</span>
+      </div>
+      <span class="brand-title" id="courseTitle"></span>
+    </div>
+    <button class="admin-avatar-btn" id="adminBtn" aria-label="Cuenta de administrador">
+      <svg class="admin-avatar-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="8.5" r="3.5" fill="currentColor" />
+        <path d="M4.5 20c0-4.14 3.36-7 7.5-7s7.5 2.86 7.5 7" fill="currentColor" />
+      </svg>
+    </button>
+  </div>
+  <div class="body-wrap">
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <div class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-label">Contenido del curso</div>
+        <button class="collapse-btn" id="collapseBtn" aria-label="Minimizar panel" title="Minimizar panel">«</button>
+      </div>
+      <div id="moduleTree"></div>
+      <div id="addModuleRow" style="display:none;">
+        <button class="btn-ghost toggle-add" id="addModuleBtn">+ Añadir módulo</button>
+      </div>
+    </div>
+    <div class="main" id="main"></div>
+  </div>
+</div>
+
+<script>
+  (function () {
+    const STORAGE_KEY = 'course-content-v2';
+    const MAX_FILE_BYTES = 4 * 1024 * 1024;
+
+    let state = null;
+    let selected = { moduleId: null, lessonId: null };
+    let isAdmin = false;
+    let formTarget = null; // null = cerrado, 'new' = añadiendo, o el id de un material en edición
+    let sidebarCollapsed = false;
+
+    function cloneState(value) {
+      return JSON.parse(JSON.stringify(value));
+    }
+
+    function persistLocalCache() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      } catch (e) {
+        console.warn('No se pudo guardar la caché local del curso.', e);
+      }
+    }
+
+    function loadLocalCache() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed.title === 'string' && Array.isArray(parsed.modules)) return parsed;
+      } catch (e) {
+        console.warn('No se pudo leer la caché local del curso.', e);
+      }
+      return null;
+    }
+
+    function setStatus(message, isError = false) {
+      let toast = document.getElementById('saveStatusToast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.id = 'saveStatusToast';
+        toast.className = 'save-status-toast';
+        document.body.appendChild(toast);
+      }
+      toast.textContent = message;
+      toast.classList.toggle('error', isError);
+      toast.classList.add('show');
+      clearTimeout(setStatus.timeout);
+      setStatus.timeout = setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    async function optimisticUpdate(mutator, { rerender = true } = {}) {
+      const previousState = cloneState(state);
+      mutator();
+      persistLocalCache();
+      if (rerender) await render();
+      try {
+        await saveData();
+        setStatus('Cambios guardados');
+      } catch (error) {
+        state = previousState;
+        persistLocalCache();
+        if (rerender) await render();
+        setStatus(error.message || 'No se pudo guardar el curso.', true);
+      }
+    }
+
+    function uid() { return Math.random().toString(36).slice(2, 9); }
+
+    function seedData() {
+      return {
+        title: 'Bootcamp de Desarrollo Web',
+        modules: []
+      };
+    }
+
+    async function loadData() {
+      const cached = loadLocalCache();
+      if (cached) {
+        state = cached;
+      } else {
+        state = seedData();
+      }
+
+      try {
+        const res = await fetch('/api/course', { cache: 'no-store' });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.course) {
+            state = data.course;
+            persistLocalCache();
+          }
+        }
+      } catch (e) {
+        console.warn('No se pudo cargar el curso remoto.', e);
+      }
+    }
+
+    async function saveData() {
+      persistLocalCache();
+      const res = await fetch('/api/course', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ course: state })
+      });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || 'No se pudo guardar el curso.');
+      }
+    }
+
+    async function uploadToDrive(file, type) {
+      const form = new FormData();
+      form.append('file', file, file.name || 'archivo');
+      form.append('type', type);
+      const res = await fetch('/api/upload', { method: 'POST', body: form });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'No se pudo subir el archivo a Google Drive.');
+      return data;
+    }
+
+    function escapeHtml(str) {
+      const d = document.createElement('div');
+      d.textContent = str || '';
+      return d.innerHTML;
+    }
+
+    // Permite solo negrita/cursiva/subrayado/tamaño de letra; todo lo demás se limpia.
+    function sanitizeRichText(html) {
+      const allowedTags = { B: 1, STRONG: 1, I: 1, EM: 1, U: 1, BR: 1, DIV: 1, P: 1, SPAN: 1, FONT: 1 };
+      const stripEntirely = { SCRIPT: 1, STYLE: 1, IFRAME: 1, OBJECT: 1, EMBED: 1, LINK: 1, META: 1 };
+      const container = document.createElement('div');
+      container.innerHTML = html || '';
+
+      function clean(node) {
+        let changed = true;
+        while (changed) {
+          changed = false;
+          for (const child of [...node.childNodes]) {
+            if (child.nodeType === 3) continue;
+            if (child.nodeType !== 1) { child.remove(); changed = true; continue; }
+            if (stripEntirely[child.tagName]) {
+              child.remove();
+              changed = true;
+              continue;
+            }
+            if (!allowedTags[child.tagName]) {
+              while (child.firstChild) node.insertBefore(child.firstChild, child);
+              node.removeChild(child);
+              changed = true;
+            }
+          }
+        }
+        for (const child of [...node.childNodes]) {
+          if (child.nodeType === 1) {
+            for (const attr of [...child.attributes]) {
+              const keep =
+                (child.tagName === 'FONT' && attr.name === 'size' && /^[1-7]$/.test(attr.value)) ||
+                (child.tagName === 'SPAN' && attr.name === 'style' && /^font-size:\s*\d+(\.\d+)?(px|pt|em);?$/i.test(attr.value.trim()));
+              if (!keep) child.removeAttribute(attr.name);
+            }
+            clean(child);
+          }
+        }
+      }
+      clean(container);
+      return container.innerHTML;
+    }
+
+    // Convierte texto plano heredado (sin HTML) a HTML seguro para mostrar; si ya es HTML enriquecido, lo deja igual.
+    function renderTextContent(raw) {
+      if (!raw) return '';
+      if (/<[a-z][\s\S]*>/i.test(raw)) return raw;
+      return escapeHtml(raw).replace(/\n/g, '<br>');
+    }
+
+    function fmtBytes(b) {
+      if (b < 1024) return b + ' B';
+      if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+      return (b / (1024 * 1024)).toFixed(1) + ' MB';
+    }
+
+    function youTubeId(url) {
+      const m = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([A-Za-z0-9_-]{6,})/);
+      return m ? m[1] : null;
+    }
+    function driveFileId(url) {
+      const trimmed = String(url || '').trim();
+      const m = trimmed.match(/\/d\/([A-Za-z0-9_-]+)/) || trimmed.match(/[?&]id=([A-Za-z0-9_-]+)/);
+      return m ? m[1] : null;
+    }
+
+    function normalizeDriveImageUrl(url) {
+      const trimmed = String(url || '').trim();
+      if (!trimmed) return '';
+      const id = driveFileId(trimmed);
+      if (!id) return trimmed;
+      return `https://drive.google.com/uc?export=view&id=${id}`;
+    }
+
+    function resolveDriveMediaUrl(url) {
+      return normalizeDriveImageUrl(url);
+    }
+
+    function resolveDriveFallbackUrl(url) {
+      const trimmed = String(url || '').trim();
+      if (!trimmed) return '';
+      const id = driveFileId(trimmed);
+      if (!id) return trimmed;
+      return `/api/image?id=${encodeURIComponent(id)}`;
+    }
+
+    const TYPE_LABEL = { video: 'Video', text: 'Texto', pdf: 'PDF', audio: 'Audio', image: 'Imagen' };
+
+    async function renderMaterialBody(mat) {
+      if (mat.type === 'text') {
+        return `<div class="material-text">${renderTextContent(mat.content)}</div>`;
+      }
+
+      const url = (mat.url || '').trim();
+      if (mat.type === 'video') {
+        const yt = youTubeId(url);
+        if (yt) return `<div class="material-body"><div style="aspect-ratio:16/9;"><iframe src="https://www.youtube.com/embed/${yt}" style="width:100%;height:100%;" allowfullscreen></iframe></div></div>`;
+        const df = driveFileId(url);
+        if (df) return `<div class="material-body"><div style="aspect-ratio:16/9;"><iframe src="https://drive.google.com/file/d/${df}/preview" style="width:100%;height:100%;" allow="autoplay"></iframe></div></div>`;
+        return `<div class="material-link">No se reconoció el enlace. <a href="${escapeHtml(url)}" target="_blank" rel="noopener">Abrir video ↗</a></div>`;
+      }
+      if (mat.type === 'pdf') {
+        const df = driveFileId(url);
+        if (df) return `<div class="material-body"><iframe src="https://drive.google.com/file/d/${df}/preview" style="height:520px;"></iframe></div>`;
+        if (/\.pdf($|\?)/i.test(url)) return `<div class="material-body"><iframe src="${escapeHtml(url)}" style="height:520px;"></iframe></div>`;
+        return `<div class="material-link"><a href="${escapeHtml(url)}" target="_blank" rel="noopener">Abrir PDF ↗</a></div>`;
+      }
+      if (mat.type === 'audio') {
+        const df = driveFileId(url);
+        if (df) return `<div class="material-body"><iframe src="https://drive.google.com/file/d/${df}/preview" style="height:90px;"></iframe></div>`;
+        return `<div class="material-body"><audio controls src="${escapeHtml(url)}"></audio></div>`;
+      }
+      if (mat.type === 'image') {
+        const src = resolveDriveMediaUrl(url);
+        const fallback = resolveDriveFallbackUrl(url);
+        return `<div class="material-body"><img src="${escapeHtml(src)}" data-fallback-src="${escapeHtml(fallback)}" alt="${escapeHtml(mat.title || '')}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null; if (this.getAttribute('data-fallback-src') && this.getAttribute('data-fallback-src') !== this.getAttribute('src')) { this.src = this.getAttribute('data-fallback-src'); }"></div>`;
+      }
+      return '';
+    }
+
+    function confirmModal(message, opts = {}) {
+      const { title = '¿Confirmar?', confirmLabel = 'Eliminar', cancelLabel = 'Cancelar', danger = true } = opts;
+      return new Promise(resolve => {
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.innerHTML = `
+        <div class="modal-box" role="alertdialog" aria-modal="true">
+          <div class="modal-title">${escapeHtml(title)}</div>
+          <div class="modal-message">${escapeHtml(message)}</div>
+          <div class="modal-btns">
+            <button class="modal-btn" id="modalCancelBtn">${escapeHtml(cancelLabel)}</button>
+            <button class="modal-btn ${danger ? 'danger' : 'primary'}" id="modalConfirmBtn">${escapeHtml(confirmLabel)}</button>
+          </div>
+        </div>`;
+        document.body.appendChild(overlay);
+        function finish(v) { document.removeEventListener('keydown', onKey); overlay.remove(); resolve(v); }
+        function onKey(e) { if (e.key === 'Escape') finish(false); };
+        document.addEventListener('keydown', onKey);
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) finish(false); });
+        overlay.querySelector('#modalCancelBtn').onclick = () => finish(false);
+        overlay.querySelector('#modalConfirmBtn').onclick = () => finish(true);
+        overlay.querySelector('#modalConfirmBtn').focus();
+      });
+    }
+
+    function promptModal(title, initialValue = '') {
+      return new Promise(resolve => {
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.innerHTML = `
+        <div class="modal-box" role="dialog" aria-modal="true">
+          <div class="modal-title">${escapeHtml(title)}</div>
+          <input type="text" class="modal-input" id="modalInput" value="${escapeHtml(initialValue)}" />
+          <div class="modal-btns">
+            <button class="modal-btn" id="modalCancelBtn">Cancelar</button>
+            <button class="modal-btn primary" id="modalConfirmBtn">Guardar</button>
+          </div>
+        </div>`;
+        document.body.appendChild(overlay);
+        const input = overlay.querySelector('#modalInput');
+        function finish(v) { document.removeEventListener('keydown', onKey); overlay.remove(); resolve(v); }
+        function onKey(e) {
+          if (e.key === 'Escape') finish(null);
+          if (e.key === 'Enter') { e.preventDefault(); finish(input.value.trim() || null); }
+        }
+        document.addEventListener('keydown', onKey);
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) finish(null); });
+        overlay.querySelector('#modalCancelBtn').onclick = () => finish(null);
+        overlay.querySelector('#modalConfirmBtn').onclick = () => finish(input.value.trim() || null);
+        setTimeout(() => { input.focus(); input.select(); }, 10);
+      });
+    }
+
+    function adminLoginModal() {
+      return new Promise(resolve => {
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.innerHTML = `
+        <div class="modal-box" role="dialog" aria-modal="true">
+          <div class="modal-title">Acceso de administrador</div>
+          <div class="modal-message">Ingresa el código para gestionar el curso.</div>
+          <input type="password" class="modal-input" id="modalPass" placeholder="Código de administrador" autocomplete="off" />
+          <div class="modal-error" id="modalLoginError" style="display:none;">Código incorrecto, intenta de nuevo.</div>
+          <div class="modal-btns">
+            <button class="modal-btn" id="modalCancelBtn">Cancelar</button>
+            <button class="modal-btn primary" id="modalConfirmBtn">Entrar</button>
+          </div>
+        </div>`;
+        document.body.appendChild(overlay);
+        const input = overlay.querySelector('#modalPass');
+        const errEl = overlay.querySelector('#modalLoginError');
+        function finish(v) { document.removeEventListener('keydown', onKey); overlay.remove(); resolve(v); }
+        async function attempt() {
+          try {
+            const res = await fetch('/api/auth/login', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ password: input.value }) });
+            if (res.ok) { finish(true); return; }
+          } catch (e) { }
+          errEl.style.display = 'block'; input.value = ''; input.focus();
+        }
+        function onKey(e) {
+          if (e.key === 'Escape') finish(false);
+          if (e.key === 'Enter') { e.preventDefault(); attempt(); }
+        }
+        document.addEventListener('keydown', onKey);
+        overlay.addEventListener('click', (e) => { if (e.target === overlay) finish(false); });
+        overlay.querySelector('#modalCancelBtn').onclick = () => finish(false);
+        overlay.querySelector('#modalConfirmBtn').onclick = attempt;
+        setTimeout(() => input.focus(), 10);
+      });
+    }
+
+    function toggleAdminMenu(anchorBtn) {
+      const existing = document.getElementById('adminMenuPopover');
+      if (existing) { existing.remove(); return; }
+
+      const menu = document.createElement('div');
+      menu.id = 'adminMenuPopover';
+      menu.className = 'admin-menu-popover';
+      menu.innerHTML = `
+      <div class="admin-menu-label"><span class="status-dot"></span>Sesión de administrador activa</div>
+      <button class="admin-menu-logout" id="logoutBtn">Cerrar sesión</button>
+    `;
+      document.body.appendChild(menu);
+
+      const rect = anchorBtn.getBoundingClientRect();
+      menu.style.top = (rect.bottom + 8) + 'px';
+      menu.style.right = Math.max(12, window.innerWidth - rect.right) + 'px';
+
+      menu.querySelector('#logoutBtn').onclick = async () => {
+        menu.remove();
+        document.removeEventListener('click', outsideClick);
+        await fetch('/api/auth/logout', { method: 'POST' }).catch(() => { });
+        isAdmin = false;
+        formTarget = null;
+        await render();
+      };
+
+      function outsideClick(e) {
+        if (menu.contains(e.target) || anchorBtn.contains(e.target)) return;
+        menu.remove();
+        document.removeEventListener('click', outsideClick);
+      }
+      setTimeout(() => document.addEventListener('click', outsideClick), 10);
+    }
+
+    function findLesson() {
+      const mod = state.modules.find(m => m.id === selected.moduleId);
+      if (!mod) return { mod: null, lesson: null };
+      const lesson = mod.lessons.find(l => l.id === selected.lessonId);
+      return { mod, lesson };
+    }
+
+    function openSidebar() {
+      document.getElementById('sidebar').classList.add('open');
+      document.getElementById('sidebarBackdrop').classList.add('open');
+    }
+    function closeSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebarBackdrop').classList.remove('open');
+    }
+
+    async function render() {
+      renderTopbar();
+      renderTree();
+      await renderMain();
+    }
+
+    function renderTopbar() {
+      const titleEl = document.getElementById('courseTitle');
+      titleEl.textContent = state.title;
+      titleEl.contentEditable = isAdmin ? 'true' : 'false';
+      titleEl.onblur = async () => {
+        const v = titleEl.textContent.trim();
+        if (v && v !== state.title) {
+          await optimisticUpdate(() => { state.title = v; });
+        }
+      };
+      const btn = document.getElementById('adminBtn');
+      btn.classList.toggle('on', isAdmin);
+      btn.setAttribute('aria-label', isAdmin ? 'Cuenta de administrador (sesión activa)' : 'Iniciar sesión como administrador');
+      document.getElementById('addModuleRow').style.display = (isAdmin && !sidebarCollapsed) ? 'block' : 'none';
+    }
+
+    function renderTree() {
+      const tree = document.getElementById('moduleTree');
+      tree.innerHTML = '';
+      state.modules.forEach((mod, mi) => {
+        const modEl = document.createElement('div');
+        modEl.className = 'module' + (mod._open ? ' open' : '');
+        const head = document.createElement('div');
+        head.className = 'module-head';
+        head.title = mod.title;
+        head.innerHTML = `<span class="module-num">M${mi + 1}</span><span class="module-title-text" style="flex:1;">${escapeHtml(mod.title)}</span>`;
+        head.onclick = () => { mod._open = !mod._open; renderTree(); };
+
+        if (isAdmin) {
+          const editModBtn = document.createElement('button');
+          editModBtn.className = 'tree-edit-btn';
+          editModBtn.title = 'Renombrar módulo';
+          editModBtn.textContent = '✎';
+          editModBtn.onclick = async (e) => {
+            e.stopPropagation();
+            const title = await promptModal('Renombrar módulo', mod.title);
+            if (!title) return;
+            await optimisticUpdate(() => { mod.title = title; });
+          };
+          head.appendChild(editModBtn);
+        }
+        const caret = document.createElement('span');
+        caret.className = 'module-caret';
+        caret.textContent = '▸';
+        head.appendChild(caret);
+        modEl.appendChild(head);
+
+        const list = document.createElement('ul');
+        list.className = 'lesson-list';
+        mod.lessons.forEach((lesson, li) => {
+          const item = document.createElement('li');
+          item.className = 'lesson-item' + (selected.lessonId === lesson.id ? ' active' : '');
+          item.title = lesson.title;
+          item.innerHTML = `<span class="lesson-num">${mi + 1}.${li + 1}</span><span class="lesson-title-text">${escapeHtml(lesson.title)}</span>`;
+          item.onclick = async (e) => {
+            e.stopPropagation();
+            selected = { moduleId: mod.id, lessonId: lesson.id };
+            formTarget = null;
+            closeSidebar();
+            await render();
+          };
+          if (isAdmin) {
+            const editLessonBtn = document.createElement('button');
+            editLessonBtn.className = 'tree-edit-btn';
+            editLessonBtn.title = 'Renombrar lección';
+            editLessonBtn.textContent = '✎';
+            editLessonBtn.onclick = async (e) => {
+              e.stopPropagation();
+              const title = await promptModal('Renombrar lección', lesson.title);
+              if (!title) return;
+              await optimisticUpdate(() => { lesson.title = title; });
+            };
+            item.appendChild(editLessonBtn);
+          }
+          list.appendChild(item);
+        });
+        modEl.appendChild(list);
+
+        if (isAdmin) {
+          const row = document.createElement('div');
+          row.className = 'admin-add-row';
+          row.style.marginLeft = '14px';
+          const addLessonBtn = document.createElement('button');
+          addLessonBtn.className = 'btn-ghost small';
+          addLessonBtn.textContent = '+ Lección';
+          addLessonBtn.onclick = async (e) => {
+            e.stopPropagation();
+            const title = await promptModal('Nueva lección', '');
+            if (!title) return;
+            await optimisticUpdate(() => {
+              const newLesson = { id: uid(), title, materials: [] };
+              mod.lessons.push(newLesson);
+              mod._open = true;
+              selected = { moduleId: mod.id, lessonId: newLesson.id };
+            });
+          };
+          const delModBtn = document.createElement('button');
+          delModBtn.className = 'btn-ghost small danger';
+          delModBtn.textContent = 'Eliminar módulo';
+          delModBtn.onclick = async (e) => {
+            e.stopPropagation();
+            const ok = await confirmModal(`Se eliminará "${mod.title}" y todas sus lecciones. Esta acción no se puede deshacer.`, { title: 'Eliminar módulo' });
+            if (!ok) return;
+            await optimisticUpdate(() => {
+              state.modules = state.modules.filter(m => m.id !== mod.id);
+              if (selected.moduleId === mod.id) selected = { moduleId: null, lessonId: null };
+            });
+          };
+          row.appendChild(addLessonBtn);
+          row.appendChild(delModBtn);
+          modEl.appendChild(row);
+        }
+
+        tree.appendChild(modEl);
+      });
+
+      document.getElementById('addModuleBtn').onclick = async () => {
+        const title = await promptModal('Nuevo módulo', '');
+        if (!title) return;
+        await optimisticUpdate(() => {
+          const newMod = { id: uid(), title, lessons: [], _open: true };
+          state.modules.push(newMod);
+        });
+      };
+    }
+
+    async function renderMain() {
+      const main = document.getElementById('main');
+      const { mod, lesson } = findLesson();
+
+      if (!lesson) {
+        main.innerHTML = `<div class="empty-state">
+        <h3>Selecciona una lección</h3>
+        <p>Elige una lección del panel izquierdo para ver sus materiales.${isAdmin ? ' O crea un módulo y una lección para empezar.' : ''}</p>
+      </div>`;
+        return;
+      }
+
+      main.innerHTML = '';
+
+      const header = document.createElement('div');
+      header.className = 'lesson-header';
+      const mi = state.modules.findIndex(m => m.id === mod.id);
+      const li = mod.lessons.findIndex(l => l.id === lesson.id);
+      header.innerHTML = `<div class="lesson-eyebrow">${escapeHtml(mod.title)} · Lección ${mi + 1}.${li + 1}</div>
+      <h1 class="lesson-title" id="lessonTitleEl">${escapeHtml(lesson.title)}</h1>`;
+      main.appendChild(header);
+
+      const titleEl = header.querySelector('#lessonTitleEl');
+      titleEl.contentEditable = isAdmin ? 'true' : 'false';
+      titleEl.onblur = async () => {
+        const v = titleEl.textContent.trim();
+        if (v && v !== lesson.title) {
+          await optimisticUpdate(() => { lesson.title = v; });
+        }
+      };
+
+      if (lesson.materials.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.style.padding = '40px 20px';
+        empty.innerHTML = isAdmin
+          ? `<h3>Sin materiales todavía</h3><p>Agrega el primero con el botón de abajo.</p>`
+          : `<h3>Sin materiales todavía</h3><p>El instructor aún no agregó contenido a esta lección.</p>`;
+        main.appendChild(empty);
+      }
+
+      for (const mat of lesson.materials) {
+        const card = document.createElement('div');
+        card.className = 'material';
+        const head = document.createElement('div');
+        head.className = 'material-head';
+        const sourceBadge = '';
+        head.innerHTML = `<span class="type-chip type-${mat.type}">${TYPE_LABEL[mat.type]}</span><span class="material-title">${escapeHtml(mat.title)}</span>${sourceBadge}`;
+        if (isAdmin) {
+          const actions = document.createElement('div');
+          actions.className = 'material-actions';
+          const editBtn = document.createElement('button');
+          editBtn.className = 'btn-ghost small';
+          editBtn.textContent = 'Editar';
+          editBtn.onclick = async () => {
+            formTarget = (formTarget === mat.id) ? null : mat.id;
+            await renderMain();
+          };
+          const delBtn = document.createElement('button');
+          delBtn.className = 'btn-ghost small danger';
+          delBtn.textContent = 'Eliminar';
+          delBtn.onclick = async () => {
+            const ok = await confirmModal(`Se eliminará "${mat.title}". Esta acción no se puede deshacer.`, { title: 'Eliminar material' });
+            if (!ok) return;
+            await optimisticUpdate(() => {
+              lesson.materials = lesson.materials.filter(m => m.id !== mat.id);
+              if (formTarget === mat.id) formTarget = null;
+            });
+          };
+          actions.appendChild(editBtn);
+          actions.appendChild(delBtn);
+          head.appendChild(actions);
+        }
+        card.appendChild(head);
+        const bodyWrap = document.createElement('div');
+        bodyWrap.innerHTML = await renderMaterialBody(mat);
+        card.appendChild(bodyWrap);
+        main.appendChild(card);
+
+        if (isAdmin && formTarget === mat.id) {
+          main.appendChild(buildMaterialPanel(lesson, mat));
+        }
+      }
+
+      if (isAdmin) {
+        const row = document.createElement('div');
+        row.className = 'lesson-actions-row';
+
+        const delLessonBtn = document.createElement('button');
+        delLessonBtn.className = 'btn-ghost danger';
+        delLessonBtn.textContent = 'Eliminar esta lección';
+        delLessonBtn.onclick = async () => {
+          const ok = await confirmModal(`Se eliminará la lección "${lesson.title}" y todos sus materiales. Esta acción no se puede deshacer.`, { title: 'Eliminar lección' });
+          if (!ok) return;
+          await optimisticUpdate(() => {
+            mod.lessons = mod.lessons.filter(l => l.id !== lesson.id);
+            selected = { moduleId: null, lessonId: null };
+          });
+        };
+
+        const addBtn = document.createElement('button');
+        addBtn.className = 'btn-ghost';
+        addBtn.textContent = formTarget === 'new' ? '– Cerrar formulario' : '+ Añadir material';
+        addBtn.onclick = async () => { formTarget = (formTarget === 'new') ? null : 'new'; await renderMain(); };
+
+        row.appendChild(delLessonBtn);
+        row.appendChild(addBtn);
+        main.appendChild(row);
+
+        if (formTarget === 'new') {
+          main.appendChild(buildMaterialPanel(lesson, null));
+        }
+      }
+    }
+
+    function buildMaterialPanel(lesson, existingMat) {
+      const panel = document.createElement('div');
+      panel.className = 'admin-panel';
+      panel.style.marginTop = '14px';
+
+      let currentType = existingMat ? existingMat.type : 'video';
+      let currentMode = 'link';
+      let pendingFile = null;
+      let mediaRecorder = null, recordedChunks = [], recTimer = null, recSeconds = 0, recStream = null;
+
+      panel.innerHTML = `
+      <div class="admin-panel-title">${existingMat ? 'Editar material' : 'Nuevo material'}</div>
+      <div class="field-row">
+        <div class="field">
+          <label>Tipo</label>
+          <select id="matType">
+            <option value="video">Video (YouTube / Drive)</option>
+            <option value="text">Texto</option>
+            <option value="pdf">PDF</option>
+            <option value="audio">Audio</option>
+            <option value="image">Imagen</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Título</label>
+          <input id="matTitle" type="text" placeholder="Ej. Introducción a variables" value="${existingMat ? escapeHtml(existingMat.title) : ''}" />
+        </div>
+      </div>
+      <div id="modeArea"></div>
+      <div class="panel-btns">
+        <button class="btn-solid" id="saveMatBtn">${existingMat ? 'Guardar cambios' : 'Guardar material'}</button>
+        <button class="btn-ghost" id="cancelMatBtn">Cancelar</button>
+      </div>
+    `;
+
+      const typeSel = panel.querySelector('#matType');
+      typeSel.value = currentType;
+      const modeArea = panel.querySelector('#modeArea');
+
+      function modesForType(type) {
+        if (type === 'audio') return [{ k: 'record', label: 'Grabar audio' }, { k: 'upload', label: 'Subir archivo' }, { k: 'link', label: 'Enlace' }];
+        if (type === 'video') return [{ k: 'link', label: 'Enlace' }];
+        return [{ k: 'upload', label: 'Subir archivo' }, { k: 'link', label: 'Enlace' }];
+      }
+
+      function acceptFor(type) {
+        if (type === 'pdf') return '.pdf,application/pdf';
+        if (type === 'audio') return 'audio/*';
+        if (type === 'image') return 'image/*';
+        return '*/*';
+      }
+
+      // solo se prellenan los campos la primera vez que se dibuja cada tipo/modo
+      let didPrefillText = false, didPrefillLink = false, didPrefillUpload = false;
+
+      function renderModeArea() {
+        pendingFile = null;
+        stopRecordingCleanup();
+
+        if (currentType === 'text') {
+          modeArea.innerHTML = `
+          <div class="field-row">
+            <div class="field" style="width:100%;">
+              <label>Contenido de texto</label>
+              <div class="rte-toolbar">
+                <button type="button" class="rte-btn" id="rteBold" title="Negrita"><b>B</b></button>
+                <button type="button" class="rte-btn italic" id="rteItalic" title="Cursiva">I</button>
+                <button type="button" class="rte-btn underline" id="rteUnderline" title="Subrayado">U</button>
+                <select class="rte-select" id="rteSize" title="Tamaño de letra">
+                  <option value="">Tamaño</option>
+                  <option value="2">Pequeño</option>
+                  <option value="3">Normal</option>
+                  <option value="5">Grande</option>
+                  <option value="7">Muy grande</option>
+                </select>
+              </div>
+              <div class="rte-editable" id="matContent" contenteditable="true"></div>
+            </div>
+          </div>`;
+          const editable = modeArea.querySelector('#matContent');
+          if (!didPrefillText) {
+            if (existingMat && existingMat.type === 'text') editable.innerHTML = renderTextContent(existingMat.content);
+            didPrefillText = true;
+          }
+          function applyCmd(cmd, val) { editable.focus(); document.execCommand(cmd, false, val || null); }
+          modeArea.querySelector('#rteBold').addEventListener('mousedown', e => { e.preventDefault(); applyCmd('bold'); });
+          modeArea.querySelector('#rteItalic').addEventListener('mousedown', e => { e.preventDefault(); applyCmd('italic'); });
+          modeArea.querySelector('#rteUnderline').addEventListener('mousedown', e => { e.preventDefault(); applyCmd('underline'); });
+          modeArea.querySelector('#rteSize').addEventListener('mousedown', e => e.stopPropagation());
+          modeArea.querySelector('#rteSize').addEventListener('change', (e) => {
+            const v = e.target.value;
+            if (v) applyCmd('fontSize', v);
+            e.target.value = '';
+          });
+          return;
+        }
+
+        const modes = modesForType(currentType);
+        if (!modes.find(m => m.k === currentMode)) currentMode = modes[0].k;
+
+        let html = `<div class="seg-control" id="segControl">`;
+        modes.forEach(m => {
+          html += `<button type="button" class="seg-btn ${currentMode === m.k ? 'active' : ''}" data-mode="${m.k}">${m.label}</button>`;
+        });
+        html += `</div><div id="modeBody"></div>`;
+        modeArea.innerHTML = html;
+
+        modeArea.querySelectorAll('.seg-btn').forEach(btn => {
+          btn.onclick = () => { currentMode = btn.dataset.mode; renderModeArea(); };
+        });
+
+        const modeBody = modeArea.querySelector('#modeBody');
+
+        if (currentMode === 'link') {
+          const prefillUrl = (!didPrefillLink && existingMat && existingMat.url) ? existingMat.url : '';
+          didPrefillLink = true;
+          modeBody.innerHTML = `
+          <div class="field-row">
+            <div class="field">
+              <label>URL (YouTube, Google Drive o enlace directo)</label>
+              <input id="matUrl" type="text" placeholder="https://..." value="${escapeHtml(prefillUrl)}" />
+            </div>
+          </div>`;
+          if (currentType !== 'video') {
+            const note = document.createElement('div');
+            note.className = 'drive-note';
+            note.textContent = 'Pega el enlace para compartir de Google Drive (con acceso "cualquiera con el enlace").';
+            modeBody.appendChild(note);
+          }
+          return;
+        }
+
+        if (currentMode === 'upload') {
+          modeBody.innerHTML = `
+          <div class="dropzone" id="dropzone">
+            <div class="dropzone-icon">⬆</div>
+            <div class="dropzone-text"><b>Arrastra un archivo aquí</b> o toca para buscarlo</div>
+            <div class="dropzone-hint">Se subirá a la carpeta correspondiente de Google Drive · máx. ~4 MB</div>
+          </div>
+          <input type="file" id="fileInput" accept="${acceptFor(currentType)}" style="display:none;" />
+          <div id="filePreviewArea"></div>
+        `;
+          if (!didPrefillUpload && existingMat && existingMat.url) {
+            const note = document.createElement('div');
+            note.className = 'current-file-note';
+            note.innerHTML = `<span>📎</span><span>Archivo actual en Google Drive — sube uno nuevo para reemplazarlo</span>`;
+            modeBody.insertBefore(note, modeBody.firstChild);
+          }
+          didPrefillUpload = true;
+          const dz = modeBody.querySelector('#dropzone');
+          const input = modeBody.querySelector('#fileInput');
+          dz.onclick = () => input.click();
+          dz.ondragover = (e) => { e.preventDefault(); dz.classList.add('dragover'); };
+          dz.ondragleave = () => dz.classList.remove('dragover');
+          dz.ondrop = async (e) => {
+            e.preventDefault(); dz.classList.remove('dragover');
+            if (e.dataTransfer.files && e.dataTransfer.files[0]) await handleFile(e.dataTransfer.files[0]);
+          };
+          input.onchange = async () => {
+            if (input.files && input.files[0]) await handleFile(input.files[0]);
+          };
+          return;
+        }
+
+        if (currentMode === 'record') {
+          modeBody.innerHTML = `
+          <div class="recorder-box">
+            <div class="rec-status" id="recStatus">Listo para grabar</div>
+            <button type="button" class="rec-btn" id="recBtn">●</button>
+            <div class="rec-timer" id="recTimer">00:00</div>
+            <div id="recPreviewArea"></div>
+            <div class="rec-error" id="recError" style="display:none;"></div>
+          </div>
+        `;
+          modeArea.querySelector('#recBtn').onclick = toggleRecording;
+        }
+      }
+
+      async function handleFile(file) {
+        if (file.size > MAX_FILE_BYTES) {
+          alert(`El archivo pesa ${fmtBytes(file.size)} y supera el límite de ${fmtBytes(MAX_FILE_BYTES)}. Súbelo manualmente a Google Drive y usa “Enlace”.`);
+          return;
+        }
+        pendingFile = file;
+        const previewArea = modeArea.querySelector('#filePreviewArea');
+        if (previewArea) {
+          previewArea.innerHTML = '';
+          const p = document.createElement('div');
+          p.className = 'file-preview';
+          p.innerHTML = `<span>📎</span><span class="fname">${escapeHtml(file.name)} · ${fmtBytes(file.size)}</span>`;
+          const rm = document.createElement('button');
+          rm.textContent = 'Quitar';
+          rm.onclick = () => { pendingFile = null; previewArea.innerHTML = ''; };
+          p.appendChild(rm);
+          previewArea.appendChild(p);
+        }
+        const titleInput = panel.querySelector('#matTitle');
+        if (titleInput && !titleInput.value) titleInput.value = file.name.replace(/\.[^.]+$/, '');
+      }
+
+      function fmtTimer(s) {
+        const m = Math.floor(s / 60).toString().padStart(2, '0');
+        const sec = (s % 60).toString().padStart(2, '0');
+        return `${m}:${sec}`;
+      }
+
+      function stopRecordingCleanup() {
+        if (recTimer) { clearInterval(recTimer); recTimer = null; }
+        if (recStream) { recStream.getTracks().forEach(t => t.stop()); recStream = null; }
+        mediaRecorder = null; recordedChunks = []; recSeconds = 0;
+      }
+
+      async function toggleRecording() {
+        const btn = modeArea.querySelector('#recBtn');
+        const status = modeArea.querySelector('#recStatus');
+        const timerEl = modeArea.querySelector('#recTimer');
+        const errEl = modeArea.querySelector('#recError');
+        errEl.style.display = 'none';
+
+        if (mediaRecorder && mediaRecorder.state === 'recording') {
+          mediaRecorder.stop();
+          return;
+        }
+
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          errEl.textContent = 'Tu navegador no permite grabar audio aquí. Usa "Subir archivo" en su lugar.';
+          errEl.style.display = 'block';
+          return;
+        }
+
+        try {
+          recStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        } catch (e) {
+          errEl.textContent = 'No se pudo acceder al micrófono. Revisa los permisos del navegador.';
+          errEl.style.display = 'block';
+          return;
+        }
+
+        recordedChunks = [];
+        recSeconds = 0;
+        let mimeType = '';
+        if (window.MediaRecorder) {
+          if (MediaRecorder.isTypeSupported('audio/webm')) mimeType = 'audio/webm';
+          else if (MediaRecorder.isTypeSupported('audio/mp4')) mimeType = 'audio/mp4';
+        }
+        try {
+          mediaRecorder = mimeType ? new MediaRecorder(recStream, { mimeType }) : new MediaRecorder(recStream);
+        } catch (e) {
+          errEl.textContent = 'La grabación de audio no está disponible en este navegador.';
+          errEl.style.display = 'block';
+          recStream.getTracks().forEach(t => t.stop());
+          return;
+        }
+
+        mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) recordedChunks.push(e.data); };
+        mediaRecorder.onstop = async () => {
+          clearInterval(recTimer); recTimer = null;
+          if (recStream) { recStream.getTracks().forEach(t => t.stop()); recStream = null; }
+          btn.classList.remove('recording'); btn.textContent = '●';
+          status.textContent = 'Grabación lista';
+          const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
+          if (blob.size > MAX_FILE_BYTES) {
+            const errE = modeArea.querySelector('#recError');
+            errE.textContent = `La grabación pesa ${fmtBytes(blob.size)}, supera el límite de ${fmtBytes(MAX_FILE_BYTES)}. Intenta una grabación más corta.`;
+            errE.style.display = 'block';
+            return;
+          }
+          const dataUrl = await new Promise((resolve) => {
+            const r = new FileReader();
+            r.onload = () => resolve(r.result);
+            r.readAsDataURL(blob);
+          });
+          pendingFile = new File([blob], 'grabacion-' + Date.now() + '.webm', { type: blob.type || 'audio/webm' });
+          const previewArea = modeArea.querySelector('#recPreviewArea');
+          previewArea.innerHTML = '';
+          const audioPrev = document.createElement('audio');
+          audioPrev.controls = true;
+          audioPrev.src = dataUrl;
+          audioPrev.style.width = '100%';
+          audioPrev.style.marginTop = '10px';
+          previewArea.appendChild(audioPrev);
+          const titleInput = panel.querySelector('#matTitle');
+          if (titleInput && !titleInput.value) titleInput.value = 'Nota de audio';
+        };
+
+        mediaRecorder.start();
+        btn.classList.add('recording'); btn.textContent = '■';
+        status.textContent = 'Grabando…';
+        recTimer = setInterval(() => {
+          recSeconds++;
+          timerEl.textContent = fmtTimer(recSeconds);
+        }, 1000);
+      }
+
+      typeSel.onchange = () => {
+        currentType = typeSel.value;
+        currentMode = modesForType(currentType)[0].k;
+        didPrefillText = didPrefillLink = didPrefillUpload = true; // al cambiar de tipo ya no se prellena con datos del material original
+        renderModeArea();
+      };
+      renderModeArea();
+
+      panel.querySelector('#cancelMatBtn').onclick = async () => {
+        stopRecordingCleanup();
+        formTarget = null;
+        await renderMain();
+      };
+
+      panel.querySelector('#saveMatBtn').onclick = async () => {
+        const type = typeSel.value;
+        const title = panel.querySelector('#matTitle').value.trim();
+        if (!title) { alert('Ponle un título al material.'); return; }
+
+        const matId = existingMat ? existingMat.id : uid();
+        const newMat = { id: matId, type, title };
+
+        if (type === 'text') {
+          const editable = panel.querySelector('#matContent');
+          newMat.content = sanitizeRichText(editable.innerHTML);
+        } else if (currentMode === 'link') {
+          const urlInput = panel.querySelector('#matUrl');
+          const url = urlInput ? urlInput.value.trim() : '';
+          if (!url) { alert('Pega una URL.'); return; }
+          newMat.url = url;
+        } else if (currentMode === 'upload' || currentMode === 'record') {
+          if (!pendingFile) {
+            if (existingMat && existingMat.url && existingMat.type === type && currentMode === 'upload') {
+              // conservar el archivo ya guardado si no se subió uno nuevo
+              newMat.mimeType = existingMat.mimeType;
+              newMat.fileName = existingMat.fileName;
+              newMat.url = existingMat.url;
+            } else {
+              alert(currentMode === 'record' ? 'Graba un audio primero.' : 'Selecciona o arrastra un archivo.');
+              return;
+            }
+          } else {
+            try {
+              const uploaded = await uploadToDrive(pendingFile, type);
+              newMat.url = uploaded.url;
+            } catch (e) {
+              alert('No se pudo guardar el archivo (puede ser muy grande). Intenta con un enlace en su lugar.');
+              return;
+            }
+          }
+        }
+
+        // si el material ya no usa un archivo local pero antes sí, limpiar el almacenamiento huérfano
+        // Los archivos de Drive se conservan al cambiar o eliminar un material; se gestionan desde Drive.
+
+        await optimisticUpdate(() => {
+          if (existingMat) {
+            const idx = lesson.materials.findIndex(m => m.id === matId);
+            if (idx > -1) lesson.materials[idx] = newMat; else lesson.materials.push(newMat);
+          } else {
+            lesson.materials.push(newMat);
+          }
+
+          formTarget = null;
+          stopRecordingCleanup();
+        }, { rerender: false });
+        await renderMain();
+      };
+
+      return panel;
+    }
+
+    document.getElementById('adminBtn').addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (isAdmin) {
+        toggleAdminMenu(e.currentTarget);
+        return;
+      }
+      const ok = await adminLoginModal();
+      if (ok) {
+        isAdmin = true;
+        await render();
+      }
+    });
+
+    document.getElementById('hamburgerBtn').addEventListener('click', () => {
+      const sb = document.getElementById('sidebar');
+      if (sb.classList.contains('open')) closeSidebar(); else openSidebar();
+    });
+    document.getElementById('sidebarBackdrop').addEventListener('click', closeSidebar);
+
+    document.getElementById('collapseBtn').addEventListener('click', () => {
+      sidebarCollapsed = !sidebarCollapsed;
+      const sb = document.getElementById('sidebar');
+      sb.classList.toggle('collapsed', sidebarCollapsed);
+      const btn = document.getElementById('collapseBtn');
+      btn.textContent = sidebarCollapsed ? '»' : '«';
+      btn.title = sidebarCollapsed ? 'Expandir panel' : 'Minimizar panel';
+      btn.setAttribute('aria-label', sidebarCollapsed ? 'Expandir panel' : 'Minimizar panel');
+      renderTopbar();
+    });
+
+    (async function init() {
+      document.getElementById('main').innerHTML = '<div class="empty-state"><h3>Cargando curso…</h3></div>';
+      await loadData();
+      try {
+        const res = await fetch('/api/auth/me', { cache: 'no-store' });
+        isAdmin = res.ok && (await res.json()).isAdmin === true;
+      } catch (e) { isAdmin = false; }
+      if (state.modules[0]) {
+        state.modules[0]._open = true;
+        if (state.modules[0].lessons[0]) {
+          selected = { moduleId: state.modules[0].id, lessonId: state.modules[0].lessons[0].id };
+        }
+      }
+      await render();
+    })();
+  })();
+</script>
