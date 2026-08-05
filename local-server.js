@@ -10,7 +10,8 @@ const handlers = {
   '/api/auth/logout': require('./api/auth/logout'),
   '/api/auth/me': require('./api/auth/me'),
   '/api/course': require('./api/course'),
-  '/api/upload': require('./api/upload'),
+  '/api/upload-session': require('./api/upload-session'),
+  '/api/upload-finalize': require('./api/upload-finalize'),
   '/api/image': require('./api/image')
 };
 

@@ -2,7 +2,7 @@ const { google } = require('googleapis');
 const fs = require('fs');
 const { requiredEnv } = require('./auth');
 
-function driveClient() {
+function buildAuth() {
   if (process.env.GOOGLE_OAUTH_CLIENT_ID && process.env.GOOGLE_OAUTH_CLIENT_SECRET && process.env.GOOGLE_OAUTH_REFRESH_TOKEN) {
     const auth = new google.auth.OAuth2(
       process.env.GOOGLE_OAUTH_CLIENT_ID,
@@ -10,7 +10,7 @@ function driveClient() {
       process.env.GOOGLE_OAUTH_REDIRECT_URI || 'https://developers.google.com/oauthplayground'
     );
     auth.setCredentials({ refresh_token: process.env.GOOGLE_OAUTH_REFRESH_TOKEN });
-    return google.drive({ version: 'v3', auth });
+    return auth;
   }
   let credentials;
   try {
@@ -20,8 +20,19 @@ function driveClient() {
       credentials = JSON.parse(requiredEnv('GOOGLE_SERVICE_ACCOUNT_JSON'));
     }
   } catch { throw new Error('No se pudo leer una credencial válida de Google.'); }
-  const auth = new google.auth.GoogleAuth({ credentials, scopes: ['https://www.googleapis.com/auth/drive'] });
-  return google.drive({ version: 'v3', auth });
+  return new google.auth.GoogleAuth({ credentials, scopes: ['https://www.googleapis.com/auth/drive'] });
+}
+
+function driveClient() {
+  return google.drive({ version: 'v3', auth: buildAuth() });
+}
+
+async function getAccessToken() {
+  const auth = buildAuth();
+  const result = await auth.getAccessToken();
+  const token = typeof result === 'string' ? result : result?.token;
+  if (!token) throw new Error('No se pudo obtener un token de acceso de Google.');
+  return token;
 }
 
 function rootFolderId() { return requiredEnv('GOOGLE_DRIVE_ROOT_FOLDER_ID'); }
@@ -56,4 +67,4 @@ async function writeCourse(course) {
   else await drive.files.create({ requestBody: { name: 'course.json', parents: [rootFolderId()], mimeType: 'application/json' }, media });
 }
 
-module.exports = { driveClient, findOrCreateFolder, readCourse, rootFolderId, writeCourse };
+module.exports = { driveClient, findOrCreateFolder, getAccessToken, readCourse, rootFolderId, writeCourse };

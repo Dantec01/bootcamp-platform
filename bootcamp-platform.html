@@ -1321,8 +1321,6 @@
 <script>
   (function () {
     const STORAGE_KEY = 'course-content-v2';
-    const MAX_FILE_BYTES = 4 * 1024 * 1024;
-
     let state = null;
     let selected = { moduleId: null, lessonId: null };
     let isAdmin = false;
@@ -1429,27 +1427,103 @@
 
     function uploadToDrive(file, type, onProgress) {
       return new Promise((resolve, reject) => {
-        const form = new FormData();
-        form.append('file', file, file.name || 'archivo');
-        form.append('type', type);
+        (async () => {
+          try {
+            if (onProgress) onProgress(null, 'session');
 
-        const xhr = new XMLHttpRequest();
-        xhr.open('POST', '/api/upload');
+            const sessionRes = await fetch('/api/upload-session', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ filename: file.name || 'archivo', mimeType: file.type || 'application/octet-stream', type })
+            });
+            const sessionData = await sessionRes.json().catch(() => ({}));
+            if (!sessionRes.ok) throw new Error(sessionData.error || 'No se pudo iniciar la subida a Google Drive.');
+            const { uploadUrl } = sessionData;
+            if (!uploadUrl) throw new Error('Google Drive no devolvió una URL de subida.');
 
-        xhr.upload.onprogress = (e) => {
-          if (onProgress) onProgress(e.lengthComputable ? Math.round((e.loaded / e.total) * 100) : null);
-        };
-        xhr.upload.onload = () => { if (onProgress) onProgress(100, true); };
+            // El PUT va directo a googleapis.com, nunca pasa por nuestra función de Vercel,
+            // así que el límite de 4.5MB de Vercel no aplica aquí — el único techo real es el de Drive.
+            const uploadResult = await new Promise((res, rej) => {
+              const xhr = new XMLHttpRequest();
+              xhr.open('PUT', uploadUrl);
+              if (file.type) xhr.setRequestHeader('Content-Type', file.type);
+              xhr.upload.onprogress = (e) => {
+                if (onProgress && e.lengthComputable) onProgress(Math.round((e.loaded / e.total) * 100), 'uploading');
+              };
+              xhr.upload.onload = () => { if (onProgress) onProgress(100, 'uploading'); };
+              xhr.onload = () => {
+                let data = {};
+                try { data = JSON.parse(xhr.responseText || '{}'); } catch (e) { /* respuesta no era JSON */ }
+                if (xhr.status >= 200 && xhr.status < 300) res(data);
+                else rej(new Error('Google Drive rechazó el archivo (código ' + xhr.status + ').'));
+              };
+              xhr.onerror = () => rej(new Error('Error de red subiendo el archivo a Google Drive.'));
+              xhr.send(file);
+            });
 
-        xhr.onload = () => {
-          let data = {};
-          try { data = JSON.parse(xhr.responseText || '{}'); } catch (e) { /* respuesta no era JSON */ }
-          if (xhr.status >= 200 && xhr.status < 300) resolve(data);
-          else reject(new Error(data.error || 'No se pudo subir el archivo a Google Drive.'));
-        };
-        xhr.onerror = () => reject(new Error('Error de red al subir el archivo.'));
-        xhr.send(form);
+            if (!uploadResult.id) throw new Error('Google Drive no devolvió el identificador del archivo.');
+
+            if (onProgress) onProgress(null, 'finalizing');
+
+            const finalizeRes = await fetch('/api/upload-finalize', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ fileId: uploadResult.id })
+            });
+            const finalizeData = await finalizeRes.json().catch(() => ({}));
+            if (!finalizeRes.ok) throw new Error(finalizeData.error || 'No se pudo finalizar la subida.');
+
+            resolve(finalizeData);
+          } catch (err) {
+            reject(err);
+          }
+        })();
       });
+    }
+
+    let pendingUpload = null; // { lessonId, matId, isNew, title, type }
+
+    function uploadPhaseLabel(percent, phase) {
+      if (phase === 'session') return 'Preparando subida…';
+      if (phase === 'finalizing') return 'Guardando en Google Drive…';
+      if (phase === 'uploading') return percent >= 100 ? 'Procesando en Google Drive…' : 'Subiendo…';
+      return 'Subiendo…';
+    }
+
+    function buildUploadingGhostCard() {
+      const card = document.createElement('div');
+      card.className = 'material';
+      card.id = 'uploadingGhostCard';
+      card.innerHTML = `
+        <div class="material-head">
+          <span class="type-chip type-${pendingUpload.type}">${TYPE_LABEL[pendingUpload.type]}</span>
+          <span class="material-title">${escapeHtml(pendingUpload.title)}</span>
+        </div>
+        <div class="upload-status" style="display:block; border:none; border-radius:0; margin:0;">
+          <div class="upload-status-label">
+            <span class="upload-spinner"></span>
+            <span id="ghostUploadText">Subiendo…</span>
+          </div>
+          <div class="upload-progress-track">
+            <div class="upload-progress-fill" id="ghostUploadFill"></div>
+          </div>
+        </div>
+      `;
+      return card;
+    }
+
+    function updateGhostProgress(percent, phase) {
+      const fill = document.getElementById('ghostUploadFill');
+      const text = document.getElementById('ghostUploadText');
+      if (!fill || !text) return;
+      text.textContent = uploadPhaseLabel(percent, phase);
+      if (percent === null || percent >= 100) {
+        fill.classList.add('indeterminate');
+        if (percent !== null) fill.style.width = '100%';
+      } else {
+        fill.classList.remove('indeterminate');
+        fill.style.width = percent + '%';
+      }
     }
 
     function escapeHtml(str) {
@@ -1872,7 +1946,9 @@
         }
       };
 
-      if (lesson.materials.length === 0) {
+      const showingNewGhost = pendingUpload && pendingUpload.isNew && pendingUpload.lessonId === lesson.id;
+
+      if (lesson.materials.length === 0 && !showingNewGhost) {
         const empty = document.createElement('div');
         empty.className = 'empty-state';
         empty.style.padding = '40px 20px';
@@ -1883,6 +1959,10 @@
       }
 
       for (const mat of lesson.materials) {
+        if (pendingUpload && !pendingUpload.isNew && pendingUpload.matId === mat.id && pendingUpload.lessonId === lesson.id) {
+          main.appendChild(buildUploadingGhostCard());
+          continue;
+        }
         const card = document.createElement('div');
         card.className = 'material';
         const head = document.createElement('div');
@@ -1923,6 +2003,10 @@
         if (isAdmin && formTarget === mat.id) {
           main.appendChild(buildMaterialPanel(lesson, mat));
         }
+      }
+
+      if (showingNewGhost) {
+        main.appendChild(buildUploadingGhostCard());
       }
 
       if (isAdmin) {
@@ -1985,15 +2069,6 @@
         </div>
       </div>
       <div id="modeArea"></div>
-      <div class="upload-status" id="uploadStatus" style="display:none;">
-        <div class="upload-status-label">
-          <span class="upload-spinner"></span>
-          <span id="uploadStatusText">Subiendo…</span>
-        </div>
-        <div class="upload-progress-track">
-          <div class="upload-progress-fill" id="uploadProgressFill"></div>
-        </div>
-      </div>
       <div class="panel-btns">
         <button class="btn-solid" id="saveMatBtn">${existingMat ? 'Guardar cambios' : 'Guardar material'}</button>
         <button class="btn-ghost" id="cancelMatBtn">Cancelar</button>
@@ -2102,7 +2177,7 @@
           <div class="dropzone" id="dropzone">
             <div class="dropzone-icon">⬆</div>
             <div class="dropzone-text"><b>Arrastra un archivo aquí</b> o toca para buscarlo</div>
-            <div class="dropzone-hint">Se subirá a la carpeta correspondiente de Google Drive · máx. ~4 MB</div>
+            <div class="dropzone-hint">Se sube directo a tu carpeta de Google Drive, sin límite de tamaño</div>
           </div>
           <input type="file" id="fileInput" accept="${acceptFor(currentType)}" style="display:none;" />
           <div id="filePreviewArea"></div>
@@ -2144,10 +2219,6 @@
       }
 
       async function handleFile(file) {
-        if (file.size > MAX_FILE_BYTES) {
-          alert(`El archivo pesa ${fmtBytes(file.size)} y supera el límite de ${fmtBytes(MAX_FILE_BYTES)}. Súbelo manualmente a Google Drive y usa “Enlace”.`);
-          return;
-        }
         pendingFile = file;
         const previewArea = modeArea.querySelector('#filePreviewArea');
         if (previewArea) {
@@ -2226,12 +2297,6 @@
           btn.classList.remove('recording'); btn.textContent = '●';
           status.textContent = 'Grabación lista';
           const blob = new Blob(recordedChunks, { type: mediaRecorder.mimeType || 'audio/webm' });
-          if (blob.size > MAX_FILE_BYTES) {
-            const errE = modeArea.querySelector('#recError');
-            errE.textContent = `La grabación pesa ${fmtBytes(blob.size)}, supera el límite de ${fmtBytes(MAX_FILE_BYTES)}. Intenta una grabación más corta.`;
-            errE.style.display = 'block';
-            return;
-          }
           const dataUrl = await new Promise((resolve) => {
             const r = new FileReader();
             r.onload = () => resolve(r.result);
@@ -2281,40 +2346,6 @@
         const matId = existingMat ? existingMat.id : uid();
         const newMat = { id: matId, type, title };
 
-        const saveBtn = panel.querySelector('#saveMatBtn');
-        const cancelBtn = panel.querySelector('#cancelMatBtn');
-        const statusBox = panel.querySelector('#uploadStatus');
-        const statusText = panel.querySelector('#uploadStatusText');
-        const progressFill = panel.querySelector('#uploadProgressFill');
-
-        function showUploading() {
-          saveBtn.disabled = true;
-          cancelBtn.disabled = true;
-          statusBox.style.display = 'block';
-          statusText.textContent = 'Subiendo…';
-          progressFill.classList.remove('indeterminate');
-          progressFill.style.width = '0%';
-        }
-        function updateUploadProgress(percent, uploadDone) {
-          if (percent === null) {
-            progressFill.classList.add('indeterminate');
-            return;
-          }
-          progressFill.classList.remove('indeterminate');
-          progressFill.style.width = percent + '%';
-          if (uploadDone || percent >= 100) {
-            statusText.textContent = 'Guardando en Google Drive…';
-            progressFill.classList.add('indeterminate');
-          }
-        }
-        function hideUploading() {
-          saveBtn.disabled = false;
-          cancelBtn.disabled = false;
-          statusBox.style.display = 'none';
-          progressFill.classList.remove('indeterminate');
-          progressFill.style.width = '0%';
-        }
-
         if (type === 'text') {
           const editable = panel.querySelector('#matContent');
           newMat.content = sanitizeRichText(editable.innerHTML);
@@ -2335,21 +2366,36 @@
               return;
             }
           } else {
-            showUploading();
+            // El formulario desaparece de inmediato y, en el lugar donde va a quedar el
+            // material, aparece la tarjeta con el indicador de "Subiendo…" y progreso real.
+            pendingUpload = { lessonId: lesson.id, matId, isNew: !existingMat, title, type };
+            formTarget = null;
+            stopRecordingCleanup();
+            await renderMain();
+
             try {
-              const uploaded = await uploadToDrive(pendingFile, type, updateUploadProgress);
+              const uploaded = await uploadToDrive(pendingFile, type, updateGhostProgress);
               newMat.url = uploaded.url;
             } catch (e) {
-              hideUploading();
-              alert('No se pudo guardar el archivo (puede ser muy grande). Intenta con un enlace en su lugar.');
+              pendingUpload = null;
+              await renderMain();
+              alert(e.message || 'No se pudo subir el archivo a Google Drive.');
               return;
             }
-            hideUploading();
+
+            pendingUpload = null;
+            await optimisticUpdate(() => {
+              if (existingMat) {
+                const idx = lesson.materials.findIndex(m => m.id === matId);
+                if (idx > -1) lesson.materials[idx] = newMat; else lesson.materials.push(newMat);
+              } else {
+                lesson.materials.push(newMat);
+              }
+            }, { rerender: false });
+            await renderMain();
+            return;
           }
         }
-
-        // si el material ya no usa un archivo local pero antes sí, limpiar el almacenamiento huérfano
-        // Los archivos de Drive se conservan al cambiar o eliminar un material; se gestionan desde Drive.
 
         await optimisticUpdate(() => {
           if (existingMat) {
