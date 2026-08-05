@@ -10,7 +10,7 @@ module.exports = async (req, res) => {
     if (req.method === 'PUT') {
       if (!requireAdmin(req, res)) return;
       const course = req.body?.course;
-      if (!course || !Array.isArray(course.modules) || typeof course.title !== 'string') return res.status(400).json({ error: 'Estructura del curso inválida.' });
+      if (!course || !Array.isArray(course.modules)) return res.status(400).json({ error: 'Estructura del curso inválida.' });
       await writeCourse(course);
       return res.status(200).json({ ok: true });
     }

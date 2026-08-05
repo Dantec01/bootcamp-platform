@@ -10,7 +10,7 @@ module.exports = async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Método no permitido.' });
   if (!requireAdmin(req, res)) return;
   try {
-    const [fields, files] = await new IncomingForm({ maxFileSize: 100 * 1024 * 1024, multiples: false }).parse(req);
+    const [fields, files] = await new IncomingForm({ multiples: false }).parse(req);
     const file = Array.isArray(files.file) ? files.file[0] : files.file;
     const type = Array.isArray(fields.type) ? fields.type[0] : fields.type;
     if (!file || !FOLDERS[type]) return res.status(400).json({ error: 'Archivo o tipo inválido.' });
