@@ -1293,7 +1293,7 @@
       <div class="logo-slot" id="logoSlot" title="Espacio para tu logo">
         <span class="logo-slot-icon">🖼</span>
       </div>
-      <span class="brand-title" id="courseTitle">Bootcamp de Desarrollo Web</span>
+      <span class="brand-title" id="courseTitle">セロトレード ACADEMY</span>
     </div>
     <button class="admin-avatar-btn" id="adminBtn" aria-label="Cuenta de administrador">
       <svg class="admin-avatar-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1431,18 +1431,40 @@
           try {
             if (onProgress) onProgress(null, 'session');
 
-            const sessionRes = await fetch('/api/upload-session', {
+            const initRes = await fetch('/api/upload-session', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ filename: file.name || 'archivo', mimeType: file.type || 'application/octet-stream', type })
+              body: JSON.stringify({ type })
             });
-            const sessionData = await sessionRes.json().catch(() => ({}));
-            if (!sessionRes.ok) throw new Error(sessionData.error || 'No se pudo iniciar la subida a Google Drive.');
-            const { uploadUrl } = sessionData;
-            if (!uploadUrl) throw new Error('Google Drive no devolvió una URL de subida.');
+            const initData = await initRes.json().catch(() => ({}));
+            if (!initRes.ok) throw new Error(initData.error || 'No se pudo preparar la subida a Google Drive.');
+            const { accessToken, folderId } = initData;
+            if (!accessToken || !folderId) throw new Error('Google Drive no devolvió los datos necesarios para subir.');
 
-            // El PUT va directo a googleapis.com, nunca pasa por nuestra función de Vercel,
-            // así que el límite de 4.5MB de Vercel no aplica aquí — el único techo real es el de Drive.
+            // El navegador crea la sesión de subida directo con Google (con su propio Origin),
+            // en vez de recibir una URL ya creada por el servidor: la API de Drive no deja leer
+            // la respuesta de una sesión creada del lado del servidor por restricciones de CORS.
+            const uploadUrl = await new Promise((res, rej) => {
+              const xhr = new XMLHttpRequest();
+              xhr.open('POST', 'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id');
+              xhr.setRequestHeader('Authorization', `Bearer ${accessToken}`);
+              xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+              if (file.type) xhr.setRequestHeader('X-Upload-Content-Type', file.type);
+              xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                  const location = xhr.getResponseHeader('Location');
+                  if (location) res(location);
+                  else rej(new Error('Google Drive no devolvió una URL de subida.'));
+                } else {
+                  rej(new Error('Google Drive rechazó la sesión de subida (código ' + xhr.status + ').'));
+                }
+              };
+              xhr.onerror = () => rej(new Error('Error de red preparando la subida a Google Drive.'));
+              xhr.send(JSON.stringify({ name: file.name || 'archivo', parents: [folderId] }));
+            });
+
+            // El PUT también va directo a googleapis.com, nunca pasa por nuestra función de
+            // Vercel, así que el límite de 4.5MB de Vercel no aplica — el único techo real es el de Drive.
             const uploadResult = await new Promise((res, rej) => {
               const xhr = new XMLHttpRequest();
               xhr.open('PUT', uploadUrl);
