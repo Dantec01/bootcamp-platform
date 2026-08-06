@@ -120,6 +120,7 @@
     justify-content: center;
     background: var(--paper-raised);
     overflow: hidden;
+    cursor: pointer;
   }
 
   .logo-slot-icon {
@@ -141,6 +142,12 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    cursor: pointer;
+    transition: color .15s ease;
+  }
+
+  .brand-title:hover {
+    color: var(--accent);
   }
 
   .admin-avatar-btn {
@@ -1548,6 +1555,23 @@
 <script>
   (function () {
     const STORAGE_KEY = 'course-content-v2';
+    const SELECTION_KEY = 'bootcamp-selected';
+
+    // Recuerda el módulo/lección abierto para volver a esa lección tras recargar
+    // la página (la vista abre la lección desde el principio, como una recarga normal).
+    function saveSelection() {
+      try {
+        localStorage.setItem(SELECTION_KEY, JSON.stringify({ moduleId: selected.moduleId, lessonId: selected.lessonId }));
+      } catch (e) { /* localStorage no disponible */ }
+    }
+
+    function loadSelection() {
+      try {
+        const raw = localStorage.getItem(SELECTION_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch (e) { return null; }
+    }
+
     let state = null;
     let selected = { moduleId: null, lessonId: null };
     let isAdmin = false;
@@ -2153,6 +2177,7 @@
           item.onclick = async (e) => {
             e.stopPropagation();
             selected = { moduleId: mod.id, lessonId: lesson.id };
+            saveSelection();
             formTarget = null;
             closeSidebar();
             await render();
@@ -2190,6 +2215,7 @@
               mod.lessons.push(newLesson);
               mod._open = true;
               selected = { moduleId: mod.id, lessonId: newLesson.id };
+              saveSelection();
             });
           };
           const delModBtn = document.createElement('button');
@@ -2201,7 +2227,10 @@
             if (!ok) return;
             await optimisticUpdate(() => {
               state.modules = state.modules.filter(m => m.id !== mod.id);
-              if (selected.moduleId === mod.id) selected = { moduleId: null, lessonId: null };
+              if (selected.moduleId === mod.id) {
+                selected = { moduleId: null, lessonId: null };
+                saveSelection();
+              }
             });
           };
           row.appendChild(addLessonBtn);
@@ -2301,6 +2330,8 @@
             const panel = buildMaterialPanel(lesson, mat);
             panel.id = 'editPanel-' + mat.id;
             card.insertAdjacentElement('afterend', panel);
+            // Igual que al añadir: lleva la vista hasta el formulario de edición recién abierto.
+            panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
           };
           const delBtn = document.createElement('button');
           delBtn.className = 'btn-ghost small danger';
@@ -2348,6 +2379,7 @@
           await optimisticUpdate(() => {
             mod.lessons = mod.lessons.filter(l => l.id !== lesson.id);
             selected = { moduleId: null, lessonId: null };
+            saveSelection();
           });
         };
 
@@ -2371,6 +2403,9 @@
           const panel = buildMaterialPanel(lesson, null);
           panel.id = 'newMaterialPanel';
           row.insertAdjacentElement('afterend', panel);
+          // Lleva la vista hasta el formulario recién abierto: el usuario podría estar mirando más abajo
+          // y no darse cuenta de que apareció (block: 'center' evita que quede oculto bajo la barra superior).
+          panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
         };
 
         row.appendChild(delLessonBtn);
@@ -2797,6 +2832,23 @@
       renderTopbar();
     });
 
+    // Clic en el título (o el logo) de la cabecera: vuelve al inicio,
+    // es decir, a la primera lección del primer módulo.
+    const goHome = async () => {
+      const firstMod = state.modules[0];
+      if (firstMod && firstMod.lessons[0]) {
+        firstMod._open = true;
+        selected = { moduleId: firstMod.id, lessonId: firstMod.lessons[0].id };
+        saveSelection();
+        formTarget = null;
+        closeSidebar();
+        await render();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    };
+    document.getElementById('courseTitle').addEventListener('click', goHome);
+    document.getElementById('logoSlot').addEventListener('click', goHome);
+
     const backToTopBtn = document.getElementById('backToTopBtn');
     backToTopBtn.addEventListener('click', () => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -2813,12 +2865,24 @@
         const res = await fetch('/api/auth/me', { cache: 'no-store' });
         isAdmin = res.ok && (await res.json()).isAdmin === true;
       } catch (e) { isAdmin = false; }
-      if (state.modules[0]) {
-        state.modules[0]._open = true;
-        if (state.modules[0].lessons[0]) {
-          selected = { moduleId: state.modules[0].id, lessonId: state.modules[0].lessons[0].id };
+      // Restaura el módulo/lección donde estaba el usuario antes de recargar;
+      // si ya no existe (se borró) o no hay nada guardado, cae en la primera lección.
+      let restored = null;
+      const savedSel = loadSelection();
+      if (savedSel && savedSel.moduleId && savedSel.lessonId) {
+        const mod = state.modules.find(m => m.id === savedSel.moduleId);
+        if (mod && mod.lessons.some(l => l.id === savedSel.lessonId)) {
+          mod._open = true;
+          restored = { moduleId: mod.id, lessonId: savedSel.lessonId };
         }
       }
+      if (!restored && state.modules[0]) {
+        state.modules[0]._open = true;
+        if (state.modules[0].lessons[0]) {
+          restored = { moduleId: state.modules[0].id, lessonId: state.modules[0].lessons[0].id };
+        }
+      }
+      if (restored) selected = restored;
       await render();
       if (isAdmin) triggerAdminGlow();
     })();
