@@ -1,16 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Plataforma de lecciones del bootcamp セロトレード ACADEMY: módulos, lecciones y materiales para aprender a tu ritmo.">
+  <title>セロトレード ACADEMY</title>
+</head>
+<body>
 <style>
   :root {
-    --paper: #F6F4EE;
+    --paper: #F2F4F7;
     --paper-raised: #FFFFFF;
     --ink: #1C2541;
     --ink-soft: #4A5170;
     --line: #DCD6C4;
-    --accent: #2E7D6B;
+    --accent: #008a22;
     --accent-soft: #DCEAE6;
     --amber: #C98A2B;
     --amber-soft: #F4E6C9;
     --danger: #B5482E;
     --danger-soft: #F6E4DE;
+    --admin-green: #1D7533;
+    --meet: #00718A;
     --radius: 10px;
     --mono: 'IBM Plex Mono', ui-monospace, monospace;
     --sans: 'IBM Plex Sans', -apple-system, sans-serif;
@@ -50,11 +61,16 @@
     padding: 14px 20px;
     background: var(--paper);
     border-bottom: 1px solid var(--line);
+    transition: padding-left .18s ease;
+  }
+
+  .topbar.collapsed {
+    padding-left: 11px;
   }
 
   .brand {
     display: flex;
-    align-items: baseline;
+    align-items: center;
     gap: 10px;
     min-width: 0;
   }
@@ -98,7 +114,7 @@
     width: 42px;
     height: 42px;
     border-radius: 9px;
-    border: 1.5px dashed var(--line);
+    border: none;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -132,9 +148,9 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    border: none;
+    border: 1px solid var(--line);
     cursor: pointer;
-    background: var(--accent);
+    background: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -143,17 +159,95 @@
   }
 
   .admin-avatar-btn:hover {
+    background: var(--accent);
     filter: brightness(1.08);
   }
 
+  /* ===== EXTERNAL LINKS (Meet / Sheets) ===== */
+  .topbar-links {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    margin-left: auto;
+    margin-right: 14px;
+  }
+
+  .topbar-link {
+    flex-shrink: 0;
+    width: 56px;
+    height: 38px;
+    padding: 0;
+    border-radius: 10px;
+    border: none;
+    background: var(--meet);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    transition: .15s;
+    box-shadow: 0 2px 6px rgba(0, 113, 138, .25);
+  }
+
+  .topbar-link:hover {
+    filter: brightness(1.08);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 113, 138, .35);
+  }
+
+  .topbar-link.sheets {
+    background: var(--amber-soft);
+    color: var(--amber);
+    box-shadow: 0 2px 6px rgba(201, 138, 43, .22);
+  }
+
+  .topbar-link.sheets:hover {
+    filter: brightness(1.03);
+    box-shadow: 0 4px 10px rgba(201, 138, 43, .3);
+  }
+
+  .topbar-link svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .sidebar-top-links {
+    display: none;
+  }
+
   .admin-avatar-btn.on {
-    background: var(--ink);
-    box-shadow: 0 0 0 3px var(--amber-soft);
+    background: var(--admin-green);
+    border-color: transparent;
+    box-shadow: 0 0 0 3px rgba(29, 117, 51, .25);
+  }
+
+  .admin-avatar-btn.on.glow {
+    animation: admin-glow 2.4s ease-in-out infinite;
+  }
+
+  @keyframes admin-glow {
+    0%,
+    100% {
+      box-shadow: 0 0 0 3px rgba(29, 117, 51, .28);
+    }
+
+    50% {
+      box-shadow: 0 0 0 10px rgba(29, 117, 51, .10);
+    }
   }
 
   .admin-avatar-icon {
     width: 22px;
     height: 22px;
+    color: var(--ink-soft);
+  }
+
+  .admin-avatar-btn:hover .admin-avatar-icon {
+    color: #fff;
+  }
+
+  .admin-avatar-btn.on .admin-avatar-icon {
     color: #fff;
   }
 
@@ -252,9 +346,9 @@
 
   .collapse-btn {
     flex-shrink: 0;
-    width: 26px;
-    height: 26px;
-    border-radius: 6px;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
     border: 1px solid var(--line);
     background: var(--paper-raised);
     color: var(--ink-soft);
@@ -262,7 +356,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: 14px;
   }
 
   .collapse-btn:hover {
@@ -1180,6 +1274,59 @@
       justify-content: flex-start;
     }
 
+    .topbar-links {
+      display: none;
+    }
+
+    .sidebar-top-links {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      padding: 0 4px 14px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 12px;
+    }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: var(--mono);
+      font-size: 12.5px;
+      color: #fff;
+      background: var(--meet);
+      border: none;
+      border-radius: 10px;
+      padding: 12px 14px;
+      min-height: 48px;
+      text-decoration: none;
+      box-shadow: 0 2px 8px rgba(0, 113, 138, .25);
+      transition: .15s;
+    }
+
+    .sidebar-link:hover {
+      filter: brightness(1.08);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0, 113, 138, .35);
+    }
+
+    .sidebar-link.sheets {
+      background: var(--amber-soft);
+      color: var(--amber);
+      box-shadow: 0 2px 8px rgba(201, 138, 43, .22);
+    }
+
+    .sidebar-link.sheets:hover {
+      filter: brightness(1.03);
+      box-shadow: 0 4px 12px rgba(201, 138, 43, .3);
+    }
+
+    .sidebar-link svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
     .hamburger {
       display: flex;
     }
@@ -1218,7 +1365,7 @@
       transform: translateX(-105%);
       transition: transform .22s ease;
       box-shadow: 2px 0 18px rgba(0, 0, 0, .12);
-      padding-top: 70px;
+      padding-top: 88px;
     }
 
     .sidebar.open {
@@ -1284,16 +1431,80 @@
   .save-status-toast.error {
     background: rgba(185, 28, 28, 0.95);
   }
+
+  .back-to-top {
+    position: fixed;
+    left: 16px;
+    bottom: 16px;
+    z-index: 40;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    background: var(--ink);
+    color: var(--paper);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .22);
+    opacity: 0;
+    transform: translateY(10px);
+    pointer-events: none;
+    transition: opacity .2s ease, transform .2s ease, background .15s ease;
+  }
+
+  .back-to-top.show {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: auto;
+  }
+
+  .back-to-top:hover {
+    background: var(--accent);
+  }
+
+  .back-to-top svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .app-footer {
+    border-top: 1px solid var(--line);
+    padding: 14px 20px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--ink-soft);
+    text-align: center;
+  }
+
+  .app-footer a {
+    color: var(--accent);
+    text-decoration: none;
+    font-weight: 500;
+  }
+
+  .app-footer a:hover {
+    text-decoration: underline;
+  }
 </style>
 
 <div id="app">
   <div class="topbar">
     <div class="brand">
       <button class="hamburger" id="hamburgerBtn" aria-label="Abrir menú"><span></span></button>
-      <div class="logo-slot" id="logoSlot" title="Espacio para tu logo">
-        <span class="logo-slot-icon">🖼</span>
+      <div class="logo-slot" id="logoSlot" title="セロトレード ACADEMY">
+        <img src="logo.png" alt="Logo de la academia">
       </div>
       <span class="brand-title" id="courseTitle">セロトレード ACADEMY</span>
+    </div>
+    <div class="topbar-links">
+      <a class="topbar-link" data-ext-link="meet" href="#" target="_blank" rel="noopener" aria-label="Unirse a la videollamada" title="Videollamada de Google Meet">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="13" height="12" rx="2.5"></rect><path d="m22 8-6 4 6 4V8z"></path></svg>
+      </a>
+      <a class="topbar-link sheets" data-ext-link="sheets" href="#" target="_blank" rel="noopener" aria-label="Abrir la Tabla Maestra" title="Tabla Maestra en Google Sheets">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M3 9h18M3 15h18M9 3v18"></path></svg>
+      </a>
     </div>
     <button class="admin-avatar-btn" id="adminBtn" aria-label="Cuenta de administrador">
       <svg class="admin-avatar-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1305,6 +1516,16 @@
   <div class="body-wrap">
     <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
     <div class="sidebar" id="sidebar">
+      <div class="sidebar-top-links">
+        <a class="sidebar-link" data-ext-link="meet" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="13" height="12" rx="2.5"></rect><path d="m22 8-6 4 6 4V8z"></path></svg>
+          <span>Videollamada</span>
+        </a>
+        <a class="sidebar-link sheets" data-ext-link="sheets" href="#" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2"></rect><path d="M3 9h18M3 15h18M9 3v18"></path></svg>
+          <span>Tabla Maestra</span>
+        </a>
+      </div>
       <div class="sidebar-header">
         <div class="sidebar-label">Contenido del curso</div>
         <button class="collapse-btn" id="collapseBtn" aria-label="Minimizar panel" title="Minimizar panel">«</button>
@@ -1316,6 +1537,12 @@
     </div>
     <div class="main" id="main"></div>
   </div>
+  <footer class="app-footer">
+    © 2026 - Plataforma educativa - Coding by <a href="https://github.com/Dantec01" target="_blank" rel="noopener">Dantec01</a> - Todos los derechos reservados
+  </footer>
+  <button class="back-to-top" id="backToTopBtn" aria-label="Volver arriba" title="Volver arriba">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m18 15-6-6-6 6"></path></svg>
+  </button>
 </div>
 
 <script>
@@ -1383,6 +1610,33 @@
     }
 
     function uid() { return Math.random().toString(36).slice(2, 9); }
+
+    // Enlaces externos del curso (Google Meet y Google Sheets).
+    // TODO: reemplazar por las URLs reales cuando estén disponibles.
+    const COURSE_LINKS = {
+      meet: 'https://meet.google.com/ftd-ybah-qnd',
+      sheets: 'https://docs.google.com/spreadsheets/d/1c9o7tEAx47Z3mG831psIRW-OQoPvw9wVaETn3qh-rFA/edit?usp=sharing'
+    };
+
+    function initExternalLinks() {
+      for (const [key, url] of Object.entries(COURSE_LINKS)) {
+        document.querySelectorAll(`[data-ext-link="${key}"]`).forEach(a => {
+          if (url) a.setAttribute('href', url);
+          else a.remove();
+        });
+      }
+    }
+
+    // Resplandor del avatar admin: solo se anima durante 10 segundos tras el login.
+    function triggerAdminGlow() {
+      const btn = document.getElementById('adminBtn');
+      if (!btn) return;
+      btn.classList.remove('glow');
+      void btn.offsetWidth; // reinicia la animación aunque ya estuviera activa
+      btn.classList.add('glow');
+      clearTimeout(triggerAdminGlow.timeout);
+      triggerAdminGlow.timeout = setTimeout(() => btn.classList.remove('glow'), 10000);
+    }
 
     function seedData() {
       return {
@@ -2521,6 +2775,7 @@
       if (ok) {
         isAdmin = true;
         await render();
+        triggerAdminGlow();
       }
     });
 
@@ -2534,6 +2789,7 @@
       sidebarCollapsed = !sidebarCollapsed;
       const sb = document.getElementById('sidebar');
       sb.classList.toggle('collapsed', sidebarCollapsed);
+      document.querySelector('.topbar').classList.toggle('collapsed', sidebarCollapsed);
       const btn = document.getElementById('collapseBtn');
       btn.textContent = sidebarCollapsed ? '»' : '«';
       btn.title = sidebarCollapsed ? 'Expandir panel' : 'Minimizar panel';
@@ -2541,8 +2797,17 @@
       renderTopbar();
     });
 
+    const backToTopBtn = document.getElementById('backToTopBtn');
+    backToTopBtn.addEventListener('click', () => {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+    window.addEventListener('scroll', () => {
+      backToTopBtn.classList.toggle('show', window.scrollY > 400);
+    }, { passive: true });
+
     (async function init() {
       document.getElementById('main').innerHTML = '<div class="empty-state"><h3>Cargando curso…</h3></div>';
+      initExternalLinks();
       await loadData();
       try {
         const res = await fetch('/api/auth/me', { cache: 'no-store' });
@@ -2555,6 +2820,9 @@
         }
       }
       await render();
+      if (isAdmin) triggerAdminGlow();
     })();
   })();
 </script>
+</body>
+</html>

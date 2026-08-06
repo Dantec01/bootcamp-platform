@@ -61,6 +61,11 @@ const server = http.createServer(async (req, res) => {
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     return fs.createReadStream(path.join(__dirname, 'bootcamp-platform.html')).pipe(res);
   }
+  if (pathname === '/logo.png') {
+    res.setHeader('Content-Type', 'image/png');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    return fs.createReadStream(path.join(__dirname, 'logo.png')).pipe(res);
+  }
   return res.status(404).json({ error: 'No encontrado.' });
 });
 
