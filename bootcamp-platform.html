@@ -1279,8 +1279,9 @@
 
   .iv-img {
     position: absolute;
-    inset: 0;
-    margin: auto;
+    left: 50%;
+    top: 50%;
+    margin: 0;
     max-width: none;
     max-height: none;
     transform-origin: center;
@@ -2191,7 +2192,10 @@
       document.body.style.overflow = 'hidden';
 
       function applyTransform() {
-        img.style.transform = `translate(${tx}px, ${ty}px) scale(${fitScale * zoom})`;
+        // left/top: 50% + translate(calc(-50% + tx)) ancla el CENTRO de la imagen en el
+        // centro del visor. Así el centrado no depende de margin:auto sobre elementos que
+        // desbordan la pantalla (en móvil eso puede alinear la imagen a un lado del visor).
+        img.style.transform = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(${fitScale * zoom})`;
         pctEl.textContent = Math.round(zoom * 100) + '%';
       }
 
