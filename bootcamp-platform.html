@@ -1548,6 +1548,37 @@
       }
     }
 
+    const AUDIO_PREFS_KEY = 'bootcamp-audio-prefs';
+
+    function getSavedAudioPrefs() {
+      try {
+        const raw = localStorage.getItem(AUDIO_PREFS_KEY);
+        if (!raw) return { volume: 1, muted: false };
+        const parsed = JSON.parse(raw);
+        return {
+          volume: typeof parsed.volume === 'number' && parsed.volume >= 0 && parsed.volume <= 1 ? parsed.volume : 1,
+          muted: !!parsed.muted
+        };
+      } catch (e) {
+        return { volume: 1, muted: false };
+      }
+    }
+
+    function saveAudioPrefs(volume, muted) {
+      try { localStorage.setItem(AUDIO_PREFS_KEY, JSON.stringify({ volume, muted })); } catch (e) { /* localStorage no disponible */ }
+    }
+
+    // Aplica el volumen/silencio que el usuario dejó la última vez a cada reproductor de audio,
+    // y guarda cualquier cambio que haga (con refrescar o F5 el ajuste se mantiene igual).
+    function applyAudioPrefs(audioEl) {
+      const prefs = getSavedAudioPrefs();
+      audioEl.volume = prefs.volume;
+      audioEl.muted = prefs.muted;
+      audioEl.addEventListener('volumechange', () => {
+        saveAudioPrefs(audioEl.volume, audioEl.muted);
+      });
+    }
+
     function escapeHtml(str) {
       const d = document.createElement('div');
       d.textContent = str || '';
@@ -1938,18 +1969,21 @@
     }
 
     async function renderMain() {
-      const main = document.getElementById('main');
+      const target = document.getElementById('main');
       const { mod, lesson } = findLesson();
 
       if (!lesson) {
-        main.innerHTML = `<div class="empty-state">
+        target.innerHTML = `<div class="empty-state">
         <h3>Selecciona una lección</h3>
         <p>Elige una lección del panel izquierdo para ver sus materiales.${isAdmin ? ' O crea un módulo y una lección para empezar.' : ''}</p>
       </div>`;
         return;
       }
 
-      main.innerHTML = '';
+      // Todo se construye aquí, fuera de la vista, y recién al final se intercambia con el
+      // contenido real en un solo paso — así nada desaparece mientras se resuelven las partes
+      // asíncronas en el camino (evita el parpadeo al abrir/cerrar el formulario).
+      const main = document.createElement('div');
 
       const header = document.createElement('div');
       header.className = 'lesson-header';
@@ -1996,10 +2030,23 @@
           actions.className = 'material-actions';
           const editBtn = document.createElement('button');
           editBtn.className = 'btn-ghost small';
-          editBtn.textContent = 'Editar';
-          editBtn.onclick = async () => {
-            formTarget = (formTarget === mat.id) ? null : mat.id;
-            await renderMain();
+          editBtn.id = 'editMaterialBtn-' + mat.id;
+          editBtn.textContent = formTarget === mat.id ? 'Cerrar edición' : 'Editar';
+          editBtn.onclick = () => {
+            const existingPanel = document.getElementById('editPanel-' + mat.id);
+            if (existingPanel) {
+              existingPanel.remove();
+              formTarget = null;
+              editBtn.textContent = 'Editar';
+              return;
+            }
+            // solo un panel de edición/creación abierto a la vez, igual que antes
+            document.querySelectorAll('[id^="editPanel-"], #newMaterialPanel').forEach(p => p.remove());
+            formTarget = mat.id;
+            editBtn.textContent = 'Cerrar edición';
+            const panel = buildMaterialPanel(lesson, mat);
+            panel.id = 'editPanel-' + mat.id;
+            card.insertAdjacentElement('afterend', panel);
           };
           const delBtn = document.createElement('button');
           delBtn.className = 'btn-ghost small danger';
@@ -2019,11 +2066,14 @@
         card.appendChild(head);
         const bodyWrap = document.createElement('div');
         bodyWrap.innerHTML = await renderMaterialBody(mat);
+        bodyWrap.querySelectorAll('audio').forEach(applyAudioPrefs);
         card.appendChild(bodyWrap);
         main.appendChild(card);
 
         if (isAdmin && formTarget === mat.id) {
-          main.appendChild(buildMaterialPanel(lesson, mat));
+          const panel = buildMaterialPanel(lesson, mat);
+          panel.id = 'editPanel-' + mat.id;
+          main.appendChild(panel);
         }
       }
 
@@ -2049,17 +2099,38 @@
 
         const addBtn = document.createElement('button');
         addBtn.className = 'btn-ghost';
+        addBtn.id = 'addMaterialBtn';
         addBtn.textContent = formTarget === 'new' ? '– Cerrar formulario' : '+ Añadir material';
-        addBtn.onclick = async () => { formTarget = (formTarget === 'new') ? null : 'new'; await renderMain(); };
+        addBtn.onclick = () => {
+          // Abrir/cerrar el formulario NO debe volver a dibujar los materiales de arriba
+          // (eso hacía que videos/PDFs se recargaran visualmente = el parpadeo). Se inserta
+          // o se quita el panel directamente, sin tocar el resto del contenido.
+          const existingPanel = document.getElementById('newMaterialPanel');
+          if (existingPanel) {
+            existingPanel.remove();
+            formTarget = null;
+            addBtn.textContent = '+ Añadir material';
+            return;
+          }
+          formTarget = 'new';
+          addBtn.textContent = '– Cerrar formulario';
+          const panel = buildMaterialPanel(lesson, null);
+          panel.id = 'newMaterialPanel';
+          row.insertAdjacentElement('afterend', panel);
+        };
 
         row.appendChild(delLessonBtn);
         row.appendChild(addBtn);
         main.appendChild(row);
 
         if (formTarget === 'new') {
-          main.appendChild(buildMaterialPanel(lesson, null));
+          const panel = buildMaterialPanel(lesson, null);
+          panel.id = 'newMaterialPanel';
+          main.appendChild(panel);
         }
       }
+
+      target.replaceChildren(...main.childNodes);
     }
 
     function buildMaterialPanel(lesson, existingMat) {
@@ -2354,10 +2425,14 @@
       };
       renderModeArea();
 
-      panel.querySelector('#cancelMatBtn').onclick = async () => {
+      panel.querySelector('#cancelMatBtn').onclick = () => {
         stopRecordingCleanup();
         formTarget = null;
-        await renderMain();
+        panel.remove();
+        const triggerBtn = existingMat
+          ? document.getElementById('editMaterialBtn-' + existingMat.id)
+          : document.getElementById('addMaterialBtn');
+        if (triggerBtn) triggerBtn.textContent = existingMat ? 'Editar' : '+ Añadir material';
       };
 
       panel.querySelector('#saveMatBtn').onclick = async () => {

@@ -1,8 +1,33 @@
 {
   "rewrites": [
-    { "source": "/", "destination": "/bootcamp-platform.html" }
+    {
+      "source": "/",
+      "destination": "/bootcamp-platform.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    },
+    {
+      "source": "/bootcamp-platform.html",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    }
   ],
   "functions": {
-    "api/image.js": { "maxDuration": 30 }
+    "api/image.js": {
+      "maxDuration": 30
+    }
   }
 }
