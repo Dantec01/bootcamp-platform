@@ -848,6 +848,103 @@
     cursor: zoom-in;
   }
 
+  /* ===== Placeholder de carga para imágenes de materiales ===== */
+  .img-shell {
+    position: relative;
+    background: var(--paper);
+  }
+
+  .img-shell img {
+    opacity: 0;
+    transition: opacity .25s ease;
+  }
+
+  .img-shell img.loaded {
+    opacity: 1;
+  }
+
+  .img-shell img.loaded ~ .img-loading {
+    display: none;
+  }
+
+  .img-loading {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    min-height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .img-loading span {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    border: 3px solid var(--line);
+    border-top-color: var(--accent);
+    animation: upload-spin .7s linear infinite;
+  }
+
+  /* ===== Skeleton de carga del curso ===== */
+  .skeleton-screen {
+    padding: 26px 32px 100px;
+  }
+
+  .sk-hint {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 14px;
+  }
+
+  .sk {
+    background: linear-gradient(100deg, #E8E4D8 30%, #F6F3EA 50%, #E8E4D8 70%);
+    background-size: 220% 100%;
+    animation: sk-shimmer 1.3s ease-in-out infinite;
+  }
+
+  @keyframes sk-shimmer {
+    0% {
+      background-position: 220% 0;
+    }
+
+    100% {
+      background-position: -220% 0;
+    }
+  }
+
+  .sk-module {
+    height: 40px;
+    margin: 0 4px 8px;
+  }
+
+  .sk-lesson-head {
+    margin-bottom: 26px;
+  }
+
+  .sk-lesson-head .sk {
+    margin-bottom: 10px;
+  }
+
+  .sk-card {
+    margin-bottom: 18px;
+  }
+
+  .sk-card .sk-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 13px 16px;
+  }
+
+  .sk-card .sk-row + .sk-row {
+    padding-top: 0;
+  }
+
   .material-link {
     padding: 16px;
     font-size: 13px;
@@ -2331,7 +2428,7 @@
       if (mat.type === 'image') {
         const src = resolveDriveMediaUrl(url);
         const fallback = resolveDriveFallbackUrl(url);
-        return `<div class="material-body"><img src="${escapeHtml(src)}" data-fallback-src="${escapeHtml(fallback)}" alt="${escapeHtml(mat.title || '')}" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null; if (this.getAttribute('data-fallback-src') && this.getAttribute('data-fallback-src') !== this.getAttribute('src')) { this.src = this.getAttribute('data-fallback-src'); }"></div>`;
+        return `<div class="material-body"><div class="img-shell"><img src="${escapeHtml(src)}" data-fallback-src="${escapeHtml(fallback)}" alt="${escapeHtml(mat.title || '')}" loading="lazy" referrerpolicy="no-referrer" onload="this.classList.add('loaded')" onerror="this.onerror=null; var f=this.getAttribute('data-fallback-src'); if (f && f!==this.getAttribute('src')) { this.src=f; } else { this.classList.add('loaded'); }"><div class="img-loading"><span></span></div></div></div>`;
       }
       return '';
     }
@@ -3481,8 +3578,35 @@
       backToTopBtn.classList.toggle('show', window.scrollY > 400);
     }, { passive: true });
 
+    // Skeleton de carga: se muestra mientras se descarga el curso desde la API.
+    function showCourseSkeleton() {
+      const sk = (w, h, r = 8) => `<div class="sk" style="width:${w};height:${h};border-radius:${r}px;"></div>`;
+      document.getElementById('moduleTree').innerHTML =
+        Array.from({ length: 6 }, () => '<div class="sk sk-module"></div>').join('');
+      document.getElementById('main').innerHTML = `
+        <div class="skeleton-screen">
+          <div class="sk-hint">Cargando contenido…</div>
+          <div class="sk-lesson-head">
+            ${sk('110px', '12px', '4px')}
+            ${sk('55%', '30px', '6px')}
+          </div>
+          ${[68, 62, 56].map(pct => `
+            <div class="material sk-card">
+              <div class="sk-row">
+                ${sk('62px', '18px', '5px')}
+                ${sk(`${pct}%`, '15px', '5px')}
+              </div>
+              <div class="sk-row">
+                ${sk('100%', '12px', '5px')}
+                ${sk('92%', '12px', '5px')}
+                ${sk('70%', '12px', '5px')}
+              </div>
+            </div>`).join('')}
+        </div>`;
+    }
+
     (async function init() {
-      document.getElementById('main').innerHTML = '<div class="empty-state"><h3>Cargando curso…</h3></div>';
+      showCourseSkeleton();
       initExternalLinks();
       await loadData();
       try {
