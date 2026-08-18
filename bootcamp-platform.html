@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Plataforma de lecciones del bootcamp セロトレード ACADEMY: módulos, lecciones y materiales para aprender a tu ritmo.">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
   <title>セロトレード ACADEMY</title>
 </head>
 <body>
@@ -3575,7 +3576,7 @@
       window.scrollTo({ top: 0, behavior: 'smooth' });
     });
     window.addEventListener('scroll', () => {
-      backToTopBtn.classList.toggle('show', window.scrollY > 400);
+      backToTopBtn.classList.toggle('show', window.scrollY > 180);
     }, { passive: true });
 
     // Skeleton de carga: se muestra mientras se descarga el curso desde la API.

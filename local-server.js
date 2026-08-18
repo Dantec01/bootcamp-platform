@@ -66,6 +66,11 @@ const server = http.createServer(async (req, res) => {
     res.setHeader('Cache-Control', 'public, max-age=86400');
     return fs.createReadStream(path.join(__dirname, 'logo.png')).pipe(res);
   }
+  if (pathname === '/favicon.ico') {
+    res.setHeader('Content-Type', 'image/x-icon');
+    res.setHeader('Cache-Control', 'public, max-age=86400');
+    return fs.createReadStream(path.join(__dirname, 'favicon.ico')).pipe(res);
+  }
   return res.status(404).json({ error: 'No encontrado.' });
 });
 
