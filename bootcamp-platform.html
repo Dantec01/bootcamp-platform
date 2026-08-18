@@ -728,6 +728,126 @@
     font-weight: 600;
   }
 
+  /* ===== Markdown renderizado dentro de materiales de texto ===== */
+  .material-text h1,
+  .material-text h2,
+  .material-text h3,
+  .material-text h4,
+  .material-text h5,
+  .material-text h6 {
+    font-family: var(--serif);
+    font-weight: 600;
+    color: var(--ink);
+    line-height: 1.25;
+    margin: 18px 0 8px;
+  }
+
+  .material-text h1 {
+    font-size: 22px;
+  }
+
+  .material-text h2 {
+    font-size: 19px;
+  }
+
+  .material-text h3 {
+    font-size: 17px;
+  }
+
+  .material-text h4,
+  .material-text h5,
+  .material-text h6 {
+    font-size: 15px;
+  }
+
+  .material-text h1:first-child,
+  .material-text h2:first-child,
+  .material-text h3:first-child {
+    margin-top: 0;
+  }
+
+  .material-text ul,
+  .material-text ol {
+    margin: 0 0 10px;
+    padding-left: 22px;
+  }
+
+  .material-text li {
+    margin-bottom: 4px;
+  }
+
+  .material-text a {
+    color: var(--accent);
+  }
+
+  .material-text blockquote {
+    margin: 0 0 10px;
+    padding: 2px 14px;
+    border-left: 3px solid var(--accent);
+    background: var(--accent-soft);
+    border-radius: 0 6px 6px 0;
+    color: var(--ink-soft);
+  }
+
+  .material-text code {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 1px 5px;
+  }
+
+  .material-text pre {
+    background: #1C2541;
+    color: #F2F4F7;
+    border-radius: 8px;
+    padding: 12px 14px;
+    overflow-x: auto;
+    margin: 0 0 10px;
+    line-height: 1.5;
+  }
+
+  .material-text pre code {
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: inherit;
+    font-size: 12.5px;
+  }
+
+  .material-text table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 0 0 12px;
+    font-size: 13.5px;
+  }
+
+  .material-text th,
+  .material-text td {
+    border: 1px solid var(--line);
+    padding: 7px 10px;
+    text-align: left;
+  }
+
+  .material-text th {
+    background: var(--paper);
+    font-weight: 600;
+  }
+
+  .material-text hr {
+    border: none;
+    border-top: 1px solid var(--line);
+    margin: 16px 0;
+  }
+
+  .material-text img {
+    width: auto;
+    max-width: 100%;
+    border-radius: 8px;
+    cursor: zoom-in;
+  }
+
   .material-link {
     padding: 16px;
     font-size: 13px;
@@ -1709,6 +1829,11 @@
   </button>
 </div>
 
+<!-- Librerías para renderizar Markdown en los materiales de texto (marked) y sanitizar
+     el HTML resultante (DOMPurify), cargadas desde jsDelivr con integridad SRI. -->
+<script src="https://cdn.jsdelivr.net/npm/marked@18.0.9/lib/marked.umd.js" integrity="sha384-kyb7rY2xnKgiRpRdAeNJxQ8e2SiGZy1m+FK9yME6M0eGJpg7EFaGGvf7+JSirgqE" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.4.13/dist/purify.min.js" integrity="sha384-ZuC+DIACqSIZTsp+7YF57cR5Y+6qXa7YFbEKdA/EHA/R0T+41dtorqucYl71Zp+t" crossorigin="anonymous"></script>
+
 <script>
   (function () {
     const STORAGE_KEY = 'course-content-v2';
@@ -2062,10 +2187,82 @@
       return container.innerHTML;
     }
 
+    // Detecta si un texto parece Markdown (algo pegado con copiar y pegar) para renderizarlo.
+    function looksLikeMarkdown(text) {
+      const t = String(text || '');
+      if (!t.trim()) return false;
+      if (/(^|\n)\s{0,3}(#{1,6}\s)/.test(t)) return true;                    // títulos
+      if (/(^|\n)\s{0,3}([-*+]\s+|\d+\.\s+|>\s|```)/.test(t)) return true;   // listas, citas, código
+      if (/(^|\n)\s{0,3}(-{3,}|\*{3,}|_{3,})\s*$/.test(t)) return true;      // línea divisoria
+      if (/\*\*[^*]+\*\*|__[^_]+__|~~[^~]+~~/.test(t)) return true;          // negrita / tachado
+      if (/!\[[^\]]*\]\([^)]*\)|\[[^\]]*\]\([^)]*\)/.test(t)) return true;   // imágenes / enlaces
+      return false;
+    }
+
+    // Convierte Markdown a HTML seguro con marked + DOMPurify; si la librería no carga, degrada a texto plano.
+    function renderMarkdown(raw) {
+      try {
+        const html = marked.parse(String(raw || ''), { gfm: true, breaks: true });
+        return typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(html) : html;
+      } catch (e) {
+        return escapeHtml(raw).replace(/\n/g, '<br>');
+      }
+    }
+
+    // ¿El HTML solo envuelve texto con div/p/br/span sin atributos? => en la práctica es texto plano.
+    function isPlainWrapperHtml(html) {
+      const container = document.createElement('div');
+      container.innerHTML = html || '';
+      const allowed = { DIV: 1, P: 1, BR: 1, SPAN: 1 };
+      function check(node) {
+        for (const child of node.childNodes) {
+          if (child.nodeType === 3) continue;
+          if (child.nodeType !== 1 || !allowed[child.tagName] || child.attributes.length) return false;
+          if (!check(child)) return false;
+        }
+        return true;
+      }
+      return check(container);
+    }
+
+    // Extrae el texto plano de un HTML "solo envoltorios" conservando los saltos de línea
+    // entre bloques (innerText no sirve en elementos fuera del documento).
+    function wrapperHtmlToText(html) {
+      const container = document.createElement('div');
+      container.innerHTML = html || '';
+      let out = '';
+      (function visit(node) {
+        for (const child of node.childNodes) {
+          if (child.nodeType === 3) { out += child.textContent; continue; }
+          if (child.nodeType !== 1) continue;
+          if (child.tagName === 'BR') { out += '\n'; continue; }
+          visit(child);
+          if ((child.tagName === 'DIV' || child.tagName === 'P') && out.length && !out.endsWith('\n')) out += '\n';
+        }
+      })(container);
+      return out.replace(/\n{3,}/g, '\n\n').trim();
+    }
+
+    // Para editar: si es Markdown se muestra el código fuente; si no, el HTML ya formateado.
+    function renderEditorContent(raw) {
+      if (!raw) return '';
+      if (/<[a-z][\s\S]*>/i.test(raw)) return renderTextContent(raw);
+      if (looksLikeMarkdown(raw)) return escapeHtml(raw);
+      return renderTextContent(raw);
+    }
+
     // Convierte texto plano heredado (sin HTML) a HTML seguro para mostrar; si ya es HTML enriquecido, lo deja igual.
     function renderTextContent(raw) {
       if (!raw) return '';
-      if (/<[a-z][\s\S]*>/i.test(raw)) return raw;
+      if (/<[a-z][\s\S]*>/i.test(raw)) {
+        // Un Markdown pegado puede quedar guardado envuelto en <div>: si no hay formato real, se convierte.
+        if (isPlainWrapperHtml(raw)) {
+          const plain = wrapperHtmlToText(raw);
+          if (looksLikeMarkdown(plain)) return renderMarkdown(plain);
+        }
+        return raw;
+      }
+      if (looksLikeMarkdown(raw)) return renderMarkdown(raw);
       return escapeHtml(raw).replace(/\n/g, '<br>');
     }
 
@@ -2913,9 +3110,23 @@
           </div>`;
           const editable = modeArea.querySelector('#matContent');
           if (!didPrefillText) {
-            if (existingMat && existingMat.type === 'text') editable.innerHTML = renderTextContent(existingMat.content);
+            if (existingMat && existingMat.type === 'text') {
+              // Si el material guardado es Markdown se muestra el código fuente (texto plano)
+              // para poder editarlo; si no, el HTML ya formateado.
+              if (looksLikeMarkdown(existingMat.content)) editable.textContent = existingMat.content;
+              else editable.innerHTML = renderEditorContent(existingMat.content);
+            }
             didPrefillText = true;
           }
+          // Si se pega Markdown (con copiar y pegar), se inserta como texto plano para que
+          // quede guardado como Markdown y se renderice formateado al ver la lección.
+          editable.addEventListener('paste', (e) => {
+            const text = (e.clipboardData && e.clipboardData.getData) ? e.clipboardData.getData('text/plain') : '';
+            if (text && looksLikeMarkdown(text)) {
+              e.preventDefault();
+              document.execCommand('insertText', false, text);
+            }
+          });
           function applyCmd(cmd, val) { editable.focus(); document.execCommand(cmd, false, val || null); }
           modeArea.querySelector('#rteBold').addEventListener('mousedown', e => { e.preventDefault(); applyCmd('bold'); });
           modeArea.querySelector('#rteItalic').addEventListener('mousedown', e => { e.preventDefault(); applyCmd('italic'); });
@@ -3144,7 +3355,10 @@
 
         if (type === 'text') {
           const editable = panel.querySelector('#matContent');
-          newMat.content = sanitizeRichText(editable.innerHTML);
+          const html = editable.innerHTML;
+          // Si el editor solo contiene texto sin formato (incluido Markdown pegado), se guarda
+          // el texto plano real para conservar saltos de línea y sintaxis Markdown.
+          newMat.content = isPlainWrapperHtml(html) ? (editable.innerText || sanitizeRichText(html)) : sanitizeRichText(html);
         } else if (currentMode === 'link') {
           const urlInput = panel.querySelector('#matUrl');
           const url = urlInput ? urlInput.value.trim() : '';
