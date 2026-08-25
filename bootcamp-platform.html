@@ -1330,6 +1330,8 @@
     background: var(--paper-raised);
     font-size: 14.5px;
     line-height: 1.6;
+    /* Conserva los saltos de línea del texto plano (Markdown) al editar */
+    white-space: pre-wrap;
   }
 
   .rte-editable:focus {
@@ -3456,7 +3458,9 @@
           const html = editable.innerHTML;
           // Si el editor solo contiene texto sin formato (incluido Markdown pegado), se guarda
           // el texto plano real para conservar saltos de línea y sintaxis Markdown.
-          newMat.content = isPlainWrapperHtml(html) ? (editable.innerText || sanitizeRichText(html)) : sanitizeRichText(html);
+          // Se usa wrapperHtmlToText en vez de innerText porque innerText devuelve el texto
+          // tal como se renderiza (con los \n ya colapsados) y rompería el Markdown.
+          newMat.content = isPlainWrapperHtml(html) ? (wrapperHtmlToText(html) || sanitizeRichText(html)) : sanitizeRichText(html);
         } else if (currentMode === 'link') {
           const urlInput = panel.querySelector('#matUrl');
           const url = urlInput ? urlInput.value.trim() : '';
