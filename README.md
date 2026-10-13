@@ -309,4 +309,8 @@ Después:
 
 ## Licencia
 
-Actualmente este repositorio no declara una licencia de código abierto. Consulta con los responsables del proyecto antes de redistribuirlo o utilizarlo fuera del contexto autorizado.
+Copyright © 2026 Dantec01. Todos los derechos reservados.
+
+Este proyecto se distribuye bajo una licencia personalizada de uso no comercial. Consulta los términos completos en el archivo [LICENSE](./LICENSE).
+
+Se permite el uso personal, educativo o no comercial, siempre que se conserve la atribución de autoría. El uso comercial requiere autorización previa por escrito y el pago de una licencia al autor.

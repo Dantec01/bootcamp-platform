@@ -1,0 +1,96 @@
+LICENCIA DE USO NO COMERCIAL
+
+Copyright (c) 2026 Dantec01. Todos los derechos reservados.
+
+1. ALCANCE
+
+Esta licencia regula el uso del software, código fuente, documentación,
+recursos y demás materiales incluidos en este repositorio (en adelante, el
+"Proyecto").
+
+El Proyecto no se distribuye bajo una licencia de código abierto. Todos los
+derechos no concedidos expresamente en este documento quedan reservados al
+autor.
+
+2. USOS PERMITIDOS
+
+Se concede un permiso limitado, personal, revocable, no exclusivo,
+intransferible y gratuito para:
+
+- revisar el código fuente;
+- ejecutar el Proyecto con fines personales, educativos o de evaluación;
+- modificar el Proyecto únicamente para uso personal, educativo o no
+  comercial;
+- realizar copias del Proyecto para los fines anteriores, siempre que se
+  conserve esta licencia y la atribución de autoría.
+
+Este permiso no autoriza la redistribución del Proyecto como un producto
+propio ni la eliminación de los avisos de autoría.
+
+3. USOS NO AUTORIZADOS
+
+Sin una autorización previa y por escrito del autor, queda prohibido:
+
+- utilizar el Proyecto con fines comerciales o para obtener ingresos directa
+  o indirectamente;
+- vender, alquilar, sublicenciar o distribuir el Proyecto o cualquier obra
+  derivada;
+- integrar el Proyecto, total o parcialmente, en productos, servicios,
+  negocios, cursos, plataformas o aplicaciones comerciales;
+- ofrecer el Proyecto como servicio, incluyendo servicios alojados,
+  plataformas SaaS o servicios para terceros;
+- redistribuir el Proyecto o sus modificaciones bajo otra licencia;
+- eliminar, ocultar o modificar los avisos de autoría y licencia.
+
+Se considera uso comercial cualquier uso realizado por una empresa,
+organización o persona con el propósito de generar ingresos, promocionar un
+producto o servicio, prestar servicios a terceros o apoyar una actividad
+económica.
+
+4. LICENCIA COMERCIAL
+
+El uso comercial requiere una autorización previa y por escrito del autor y
+el pago de la licencia comercial correspondiente. Las condiciones, el alcance
+de los derechos concedidos, la duración, las restricciones y el importe de la
+licencia deberán acordarse por escrito antes de iniciar el uso comercial.
+
+Para solicitar una licencia comercial, contacta al autor a través del perfil
+de GitHub:
+
+https://github.com/Dantec01
+
+La publicación de un fork, una modificación, una contribución o una copia del
+Proyecto no implica autorización para uso comercial.
+
+5. PROPIEDAD INTELECTUAL
+
+El Proyecto y todos sus derechos de propiedad intelectual pertenecen al
+autor, salvo que se indique expresamente lo contrario. Esta licencia no
+transfiere la titularidad del Proyecto ni concede derechos sobre marcas,
+logotipos, nombres comerciales o contenidos de terceros.
+
+6. TERMINACIÓN
+
+Los permisos concedidos por esta licencia terminan automáticamente si se
+incumple cualquiera de sus términos. Tras la terminación, se deberá
+interrumpir el uso del Proyecto y eliminar las copias que se encuentren bajo
+el control de quien haya incumplido, salvo que la legislación aplicable
+disponga lo contrario.
+
+7. AUSENCIA DE GARANTÍAS Y LIMITACIÓN DE RESPONSABILIDAD
+
+EL PROYECTO SE PROPORCIONA "TAL CUAL", SIN GARANTÍAS EXPRESAS O IMPLÍCITAS,
+INCLUIDAS, ENTRE OTRAS, GARANTÍAS DE COMERCIABILIDAD, IDONEIDAD PARA UN FIN
+DETERMINADO, DISPONIBILIDAD, SEGURIDAD O AUSENCIA DE INFRACCIÓN.
+
+EN LA MEDIDA MÁXIMA PERMITIDA POR LA LEY APLICABLE, EL AUTOR NO SERÁ
+RESPONSABLE POR DAÑOS DIRECTOS, INDIRECTOS, INCIDENTALES, ESPECIALES,
+CONSECUENTES O PUNITIVOS, NI POR PÉRDIDA DE DATOS, INGRESOS, BENEFICIOS O
+INTERRUPCIÓN DEL NEGOCIO DERIVADOS DEL USO O DE LA IMPOSIBILIDAD DE USAR EL
+PROYECTO.
+
+8. LEGISLACIÓN APLICABLE
+
+Esta licencia se interpretará de acuerdo con la legislación aplicable en la
+jurisdicción del autor, sin perjuicio de las normas imperativas que resulten
+aplicables.
